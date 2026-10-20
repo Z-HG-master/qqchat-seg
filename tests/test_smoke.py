@@ -26,6 +26,14 @@ import subprocess
 import sys
 import tempfile
 
+# Windows 上 stdout 默认是 cp1252，打印 ✓ / ✗ 会 UnicodeEncodeError。
+# 这里强制 utf-8（CI 的 windows-latest 就是因此挂掉的）。
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding='utf-8', errors='replace')
+    except (AttributeError, ValueError):
+        pass
+
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PY = sys.executable
 

@@ -136,7 +136,7 @@ python pipeline.py --branch both          # 两份都出（默认）
 
 ## 6. 快速开始
 
-需求：Python 3.9+；一个 OpenAI 兼容的推理服务（LM Studio / Ollama / vLLM / llama.cpp / 云端都行）。
+需求：Python 3.10+；一个 OpenAI 兼容的推理服务（LM Studio / Ollama / vLLM / llama.cpp / 云端都行）。
 
 ```bash
 # 1. 安装依赖（只有 Pillow）
