@@ -58,6 +58,9 @@ python bench/bench_alimeeting.py --model <模型ID> --meetings 3
 
 数据目录默认 `bench/data/`，可用 `--data-dir` 覆盖（部分脚本用 `--data` 指定单个文件）。
 
+> 脚本里显式传 `reasoning_effort: 'none'` 只是为了复现 Qwen 系列「关闭思考」的状态，
+> 让数字与报告一致；**流水线本身不依赖这个参数**（默认不发送）。换用其他模型时它无意义。
+
 ## 输出
 
 - `bench/results/ubuntu_irc_result_<model>.json`：混淆矩阵 + P/R/F1/准确率

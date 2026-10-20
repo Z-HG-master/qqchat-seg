@@ -27,7 +27,9 @@ DEFAULTS = {
     'model_big': '',
     'model_supports_vision': True,
     'temperature': 0.1,
-    'reasoning_effort': 'none',
+    # 可选：仅部分模型家族支持的「思考模式强度」透传参数（如 Qwen）。
+    # 留空 = 不发送该字段，交给模型/服务端的默认行为。本项目不依赖它。
+    'reasoning_effort': '',
     'request_timeout': 180,
     'mock': False,
 }
@@ -203,7 +205,8 @@ class Config(object):
 
     @property
     def reasoning_effort(self):
-        return self.raw.get('reasoning_effort', 'none')
+        # 默认空字符串 = 不发送该字段；它不是本项目的必要参数
+        return self.raw.get('reasoning_effort', '')
 
     @property
     def request_timeout(self):

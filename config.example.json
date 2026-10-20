@@ -12,7 +12,7 @@
   "model_big": "qwen/qwen3.8-27b",
   "model_supports_vision": true,
   "temperature": 0.1,
-  "reasoning_effort": "none",
   "request_timeout": 180,
-  "mock": false
+  "mock": false,
+  "_readme_optional": "可选字段：reasoning_effort 是部分模型家族（如 Qwen）私有的思考模式强度参数，本项目不依赖它；如果你的模型默认开启思考模式导致单次调用很慢，可以在 config.json 里把 reasoning_effort 设为 none 关掉。换用其他模型时不需要这个字段。"
 }

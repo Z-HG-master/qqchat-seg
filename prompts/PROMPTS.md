@@ -192,6 +192,6 @@
 | 参数 | 值 | 说明 |
 |---|---|---|
 | `temperature` | 0.1（判别）/ 0.0（基准测试） | — |
-| `reasoning_effort` | **`"none"`** | 9B 不响应此参数；27B 响应但收益不抵成本（见测试报告） |
+| 思考模式 | **不开启** | 本项目不依赖 reasoning/thinking；需要模型「多想一步」时用提示词要求它输出一句理由（见 1.1 的 explain 尾巴）。部分模型可用 `reasoning_effort` 显式关闭，默认不发送 |
 | `stream` | false | — |
 | 接口 | OpenAI 兼容 | 任何兼容端点均可（LM Studio / Ollama / vLLM / 云端），模型名由 `config.json` 指定 |

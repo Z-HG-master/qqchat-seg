@@ -88,7 +88,7 @@
 | 长事件 27B 复核 | 9B 判完仍有长事件混着跨话题，复核带解释后会切开约 1/3 |
 | 质量闸门放最后 | 早放会导致复核切出的碎片漏网；统一只丢一次 |
 | 媒体两轮识别 | 第一轮无上下文（服务切分），第二轮带上下文（服务最终文本） |
-| 全部 `reasoning_effort: "none"` | 9B 不响应此参数；27B 响应但收益不抵成本（详见验证报告） |
+| 判「续/新」时要求模型**附带一句理由** | 相当于让它「先想再说」，但**不开启思考模式**：不烧推理 token、单次仍是秒级，质量却接近更大的模型（9B 带理由 F1 0.870 > 27B 单步 0.809） |
 
 ---
 
@@ -189,7 +189,8 @@ python pipeline.py --prompts-override p.json   # 用自定义提示词（会警�
 | `media_root` | 媒体根目录（留空= `data_root`）；**填错会导致图片全部按丢失处理且不报错** |
 | `base_url` / `api_key` | OpenAI 兼容端点 |
 | `model_small` / `model_big` / `model_supports_vision` | 模型角色名与视觉开关 |
-| `temperature` / `reasoning_effort` / `request_timeout` | 调用参数 |
+| `temperature` / `request_timeout` | 调用参数 |
+| `reasoning_effort` | **可选**，部分模型家族（如 Qwen）的私有旋钮；默认不发送，本项目不依赖思考模式 |
 
 ### 模型可替换声明
 

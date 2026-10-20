@@ -166,7 +166,6 @@ def test_mock_pipeline_end_to_end():
             'model_big': 'mock/big',
             'model_supports_vision': True,
             'temperature': 0.1,
-            'reasoning_effort': 'none',
             'request_timeout': 10,
             'mock': True,
         }
@@ -225,7 +224,6 @@ def test_chatlab_format_import():
             'model_big': 'mock/big',
             'model_supports_vision': True,
             'temperature': 0.1,
-            'reasoning_effort': 'none',
             'request_timeout': 10,
             'mock': True,
         }
@@ -280,7 +278,6 @@ def test_chatlab_export_format():
             'model_big': 'mock/big',
             'model_supports_vision': True,
             'temperature': 0.1,
-            'reasoning_effort': 'none',
             'request_timeout': 10,
             'mock': True,
         }

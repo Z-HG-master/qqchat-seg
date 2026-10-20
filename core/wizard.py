@@ -59,7 +59,6 @@ def run(config_path):
         cfg[key] = _ask(label, default, kind)
 
     cfg['temperature'] = 0.1
-    cfg['reasoning_effort'] = 'none'
     cfg['request_timeout'] = 180
     cfg['mock'] = False
 

@@ -586,6 +586,8 @@ python pipeline.py --mock --group 123456789
 | G8 | 图片重述 **≤80 字** | ≤80 | `s2_media_context.py:45,54` 提示词约束（“输出内容不超过80字”/“描述: <不超过 80 字>”），与 PROMPTS.md 块⑦一致 | ✅ |
 | G9 | 统一调用参数（补充） | temperature/effort/stream | B5 实测请求体：`temperature 0.1`、`reasoning_effort "none"`、`stream false`、单条 user 消息；与 PROMPTS.md 末尾“统一调用参数”表一致 | ✅ |
 
+
+> **后续修订（第 4 轮）**：默认配置已**不再发送** `reasoning_effort`——它是部分模型家族（如 Qwen）的私有旋钮，不是本项目的前提。此表记录的是当时（默认传 `none`）的验收行为；现在的默认值见 `config.py`。
 ---
 
 ## H. 附加检查（不在 A–G 要求内，供参考）
