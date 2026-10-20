@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    name: 冒烟测试 (${{ matrix.os }} / py${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # windows 必测：requirements.txt 的 gbk 解码、路径分隔符、CRLF 都只在 Windows 上暴露
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.10', '3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: 检查 --status（无 config 时也应正常退出）
+        run: python pipeline.py --status
+
+      - name: 冒烟测试（含 mock 全流程、提示词一致性、requirements 编码）
+        run: python tests/test_smoke.py
+
+      - name: 检查没有意外生成 __pycache__
+        shell: bash
+        run: |
+          if find . -name '__pycache__' -o -name '*.pyc' | grep -q .; then
+            echo "::error::运行后产生了 __pycache__，会带上本机绝对路径"
+            find . -name '__pycache__' -o -name '*.pyc'
+            exit 1
+          fi
+
+  prompts-archive:
+    name: 提示词存档与代码一致
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # 单独一个 job：这条最容易因为"改了提示词忘记重新生成 PROMPTS.md"而失败
+      - name: 校验
+        run: |
+          python - <<'PY'
+          import ast, os, re, sys
+
+          REPO = os.getcwd()
+          SPEC = [
+              ('stages/s0_media.py',        '这是一张 QQ 群里的图片'),
+              ('stages/s0_media.py',        '这是一个 QQ 群里的表情包'),
+              ('stages/s0_merge_runs.py',   '下面是同一个人的连续发言'),
+              ('stages/s0_at_prep.py',      '你在处理 QQ 群聊天记录相关性判别'),
+              ('stages/s1_segment_unit.py', '你在处理 QQ 群聊天记录的事件归类工作'),
+              ('stages/s1_review.py',       '下面是 QQ 群里一段连续的消息'),
+              ('stages/s2_media_context.py','下面是 QQ 群里的一段对话'),
+          ]
+
+          md = open(os.path.join(REPO, 'prompts/PROMPTS.md'), encoding='utf-8').read()
+          blocks = re.findall(r'```\n(.*?)```', md, re.S)
+          assert len(blocks) == 7, 'PROMPTS.md 应有 7 个代码块'
+
+          def prompt_of(rel, marker):
+              tree = ast.parse(open(os.path.join(REPO, rel), encoding='utf-8').read())
+              for node in ast.walk(tree):
+                  if not isinstance(node, ast.Assign):
+                      continue
+                  consts = [n.value for n in ast.walk(node.value)
+                            if isinstance(n, ast.Constant) and isinstance(n.value, str)]
+                  if any(marker in c for c in consts):
+                      return ''.join(consts)
+              return None
+
+          # 第 5 条（1.1）的 explain 版是运行时拼的，单独处理
+          src = open(os.path.join(REPO, 'stages/s1_segment_unit.py'), encoding='utf-8').read()
+          tree = ast.parse(src)
+          vals = {}
+          for node in tree.body:
+              if isinstance(node, ast.Assign):
+                  for t in node.targets:
+                      if isinstance(t, ast.Name) and t.id in ('PROMPT', 'EXPLAIN_TAIL'):
+                          try:
+                              vals[t.id] = ast.literal_eval(node.value)
+                          except (ValueError, TypeError):
+                              pass
+          explain = vals['PROMPT'].replace('只输出一个字：续 或 新', vals['EXPLAIN_TAIL'])
+
+          for i, (rel, marker) in enumerate(SPEC):
+              code = explain if i == 4 else prompt_of(rel, marker)
+              assert code, '无法从 %s 提取第 %d 条提示词' % (rel, i + 1)
+              assert blocks[i].strip() == code.strip(), (
+                  'PROMPTS.md 第 %d 条与 %s 不一致，请重新生成存档' % (i + 1, rel))
+          print('7 条提示词与代码逐字一致')
+          PY
+
