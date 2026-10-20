@@ -32,12 +32,14 @@ config.json
 
 # ============================================================
 # 例外：仓库自带的编造样例必须被跟踪
-#   - 两份 jsonl 都是编造内容（示例用户A/B、群号 123456789）
+# 例外：仓库自带的编造样例必须被跟踪
+#   - 三份 jsonl 都是编造内容（示例用户A/B、群号 123456789）
 #   - examples/media/ 下三张图是程序合成的占位图，不含真实照片或个人信息
 # 注意：否定规则要写在对应忽略规则之后才生效
 # ============================================================
 !examples/sample_input.jsonl
 !examples/sample_input_media.jsonl
+!examples/sample_input_chatlab.jsonl
 !examples/media/
 !examples/media/*.png
 !examples/media/*.jpg

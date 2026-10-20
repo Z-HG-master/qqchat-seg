@@ -1,0 +1,20 @@
+{"_type": "header", "chatlab": {"version": "0.0.2", "exportedAt": 1788190800, "generator": "qqchat-seg examples", "description": "编造的脱敏样例"}, "meta": {"name": "示例群", "platform": "qq", "type": "group", "groupId": "123456789"}}
+{"_type": "member", "platformId": "u1001", "accountName": "示例用户A"}
+{"_type": "member", "platformId": "u1002", "accountName": "示例用户B"}
+{"_type": "member", "platformId": "u1003", "accountName": "示例用户C"}
+{"_type": "member", "platformId": "u1004", "accountName": "示例用户D"}
+{"_type": "member", "platformId": "u1005", "accountName": "示例用户E"}
+{"_type": "message", "platformMessageId": "m001", "sender": "u1001", "accountName": "示例用户A", "timestamp": 1788190689, "type": 0, "content": "刚打完一把，这把评分居然给了 S"}
+{"_type": "message", "platformMessageId": "m002", "sender": "u1001", "accountName": "示例用户A", "timestamp": 1788190690, "type": 1, "content": "[Image]"}
+{"_type": "message", "platformMessageId": "m003", "sender": "u1002", "accountName": "示例用户B", "timestamp": 1788190693, "type": 0, "content": "真的假的，我最高才 A"}
+{"_type": "message", "platformMessageId": "m004", "sender": "u1001", "accountName": "示例用户A", "timestamp": 1788190698, "type": 0, "content": "你试试把连招少放两段，评分看的是连击质量不是数量"}
+{"_type": "message", "platformMessageId": "m005", "sender": "u1002", "accountName": "示例用户B", "timestamp": 1788190702, "type": 0, "content": "懂了，晚上回去试试"}
+{"_type": "message", "platformMessageId": "m006", "sender": "u1002", "accountName": "示例用户B", "timestamp": 1788190703, "type": 5, "content": "[Sticker]"}
+{"_type": "message", "platformMessageId": "m007", "sender": "u1003", "accountName": "示例用户C", "timestamp": 1788190708, "type": 0, "content": "你们两个又在卷这个"}
+{"_type": "message", "platformMessageId": "m008", "sender": "u1001", "accountName": "示例用户A", "timestamp": 1788190711, "type": 0, "content": "卷不动了，一天就玩两把"}
+{"_type": "message", "platformMessageId": "m009", "sender": "u1004", "accountName": "示例用户D", "timestamp": 1788190715, "type": 0, "content": "说到评分，我把结算界面截下来了"}
+{"_type": "message", "platformMessageId": "m010", "sender": "u1003", "accountName": "示例用户C", "timestamp": 1788190719, "type": 0, "content": "这界面不错啊，什么设备"}
+{"_type": "message", "platformMessageId": "m011", "sender": "u1004", "accountName": "示例用户D", "timestamp": 1788190722, "type": 0, "content": "老机器，开了最低画质"}
+{"_type": "message", "platformMessageId": "m012", "sender": "u1002", "accountName": "示例用户B", "timestamp": 1788190728, "type": 3, "content": "[Video]"}
+{"_type": "message", "platformMessageId": "m013", "sender": "u1005", "accountName": "示例用户E", "timestamp": 1788190735, "type": 4, "content": "按键配置表.zip"}
+{"_type": "message", "platformMessageId": "m014", "sender": "u1001", "accountName": "示例用户A", "timestamp": 1788190736, "type": 25, "content": "同求", "replyToMessageId": "m013"}
