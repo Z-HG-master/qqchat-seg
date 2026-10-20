@@ -35,7 +35,7 @@ from config import ConfigError, add_common_args, load_config        # noqa: E402
 from core.llm import LLM, LLMError                                 # noqa: E402
 
 # ---- 提示词（实验定稿，逐字保留，勿改） -----------------------------------
-REL_PROMPT = ('你在处理 QQ 群聊天记录相关性判别。'
+REL_PROMPT = ('你在处理社交群聊记录相关性判别。'
               '下面是【被@/回复的人此前说的一条消息】和【现在这条 @ /回复了 TA 的消息】。\n'
               '判断【现在这条】是否在与 TA 此前的消息存在关联性。\n\n'
               '【TA 此前说】\n{a}\n\n'

@@ -28,7 +28,7 @@ from config import ConfigError, add_common_args, load_config  # noqa: E402
 from core.llm import LLM, LLMError                           # noqa: E402
 
 # ---- 提示词（与 1.1 判别一致） --------------------------------------------
-PROMPT = ('你在处理 QQ 群聊天记录的事件归类工作。\n\n'
+PROMPT = ('你在处理社交群聊记录的事件归类工作。\n\n'
           '【当前对话】下面是这个事件相关的消息记录（按时间先后）：\n'
           '{context}\n\n'
           '【新的一条消息】\n'
@@ -81,6 +81,9 @@ def main(argv=None):
     if args.base_url:
         cfg.raw['base_url'] = args.base_url
     cfg.raw['model_small'] = args.model
+    # Qwen 系：不传该字段会默认开启思考模式，导致输出被推理占满、正文为空。
+    # 这里显式关闭，保证与报告里的数字同一套调用参数。
+    cfg.raw['reasoning_effort'] = 'none'
     data_path = os.path.abspath(args.data) if args.data else os.path.join(
         _REPO, 'bench', 'data', 'tiage_%s.json' % args.split)
     out_dir = os.path.abspath(args.out) if args.out else os.path.join(_REPO, 'bench', 'results')

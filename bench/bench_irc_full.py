@@ -28,7 +28,7 @@ args = ap.parse_args()
 if args.data_dir:
     BENCH = os.path.abspath(args.data_dir)
 
-REV_PROMPT = ('下面是 QQ 群里一段连续的消息（按时间编号）：\n\n{lines}\n\n'
+REV_PROMPT = ('下面是社交群聊里一段连续的消息（按时间编号）：\n\n{lines}\n\n'
               '请判断：这段对话是不是一段**逻辑顺畅具有强关联性**的、适合作为 llm 训练输入数据源的对话？\n\n'
               '注意区分两种情况：\n- 顺畅：话题在自然推进，每一段前消息间具有内容主题关联性\n'
               '- 有转折：出现前后文间的话题切换，转移到一件**关联性弱**的新主题上，或前后文关注话题跨度过大\n\n'

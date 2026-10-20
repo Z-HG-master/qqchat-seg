@@ -44,13 +44,13 @@ BASE_TAIL = '只输出一个字：续 或 新'
 
 #: PROMPTS.md 里 7 个代码块的顺序 → (脚本, 用于定位的标记, 优先选的分支)
 PROMPT_SPEC = [
-    ('media.pic',      'stages/s0_media.py',          '这是一张 QQ 群里的图片',        None),
-    ('media.emoji',    'stages/s0_media.py',          '这是一个 QQ 群里的表情包',      None),
+    ('media.pic',      'stages/s0_media.py',          '这是一张社交群聊里的图片',        None),
+    ('media.emoji',    'stages/s0_media.py',          '这是一个社交群聊里的表情包',      None),
     ('merge.runs',     'stages/s0_merge_runs.py',     '下面是同一个人的连续发言',      None),
-    ('link.at',        'stages/s0_at_prep.py',        '你在处理 QQ 群聊天记录相关性判别', None),
-    ('segment.unit',   'stages/s1_segment_unit.py',   '你在处理 QQ 群聊天记录的事件归类工作', '只输出两行'),
-    ('review.event',   'stages/s1_review.py',         '下面是 QQ 群里一段连续的消息',  None),
-    ('media.context',  'stages/s2_media_context.py',  '下面是 QQ 群里的一段对话',      None),
+    ('link.at',        'stages/s0_at_prep.py',        '你在处理社交群聊记录相关性判别', None),
+    ('segment.unit',   'stages/s1_segment_unit.py',   '你在处理社交群聊记录的事件归类工作', '只输出两行'),
+    ('review.event',   'stages/s1_review.py',         '下面是社交群聊里一段连续的消息',  None),
+    ('media.context',  'stages/s2_media_context.py',  '下面是社交群聊里的一段对话',      None),
 ]
 
 

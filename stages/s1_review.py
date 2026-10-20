@@ -37,7 +37,7 @@ from config import ConfigError, add_common_args, load_config        # noqa: E402
 from core.llm import LLM, LLMError                                 # noqa: E402
 
 # ---- 提示词（实验定稿，逐字保留，勿改） -----------------------------------
-PROMPT = ('下面是 QQ 群里一段连续的消息（按时间编号）：\n\n{lines}\n\n'
+PROMPT = ('下面是社交群聊里一段连续的消息（按时间编号）：\n\n{lines}\n\n'
           '请判断：这段对话是不是一段**逻辑顺畅具有强关联性**的、'
           '适合作为 llm 训练输入数据源的对话？\n\n'
           '注意区分两种情况：\n'

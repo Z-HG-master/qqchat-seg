@@ -39,7 +39,7 @@ from config import ConfigError, add_common_args, load_config        # noqa: E402
 from core.llm import LLM, LLMError                                 # noqa: E402
 
 # ---- 提示词（实验定稿，逐字保留，勿改） -----------------------------------
-PROMPT = ('你在处理 QQ 群聊天记录的事件归类工作。\n\n'
+PROMPT = ('你在处理社交群聊记录的事件归类工作。\n\n'
           '【当前对话】下面是这个事件相关的消息记录（按时间先后）：\n'
           '{context}\n\n'
           '【新的一条消息】\n'

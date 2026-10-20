@@ -271,6 +271,19 @@ class LLM(object):
             if isinstance(content, list):  # 少数端点返回分段 content
                 content = ''.join(str(x.get('text', '')) if isinstance(x, dict) else str(x)
                                   for x in content)
-            return (content or '').strip()
+            text = (content or '').strip()
+            if text:
+                return text
+            # 空正文但带推理内容 / 因长度截断 = 模型在「思考模式」里把 token 花光了。
+            # 这种情况静默返回空串会让下游安静地产出垃圾，必须显式报错。
+            thinking = (msg.get('reasoning_content') or '').strip()
+            if thinking or choice.get('finish_reason') == 'length':
+                raise LLMError(
+                    '模型返回了空正文，但输出被「思考模式」占满'
+                    '（finish_reason=%r，reasoning %d 字）。\n'
+                    '  本流程不依赖思考模式，请关闭它：Qwen 系可设 reasoning_effort=none；'
+                    '其他模型请在其服务端关闭 thinking / reasoning。'
+                    % (choice.get('finish_reason'), len(thinking)))
+            return ''
         except (AttributeError, IndexError, TypeError):
             return ''

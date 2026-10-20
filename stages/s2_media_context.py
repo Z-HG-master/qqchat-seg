@@ -38,7 +38,7 @@ from core.llm import LLM, LLMError, MediaError                     # noqa: E402
 from core.ph_render import parse_placeholders, render_context      # noqa: E402
 
 # ---- 提示词（实验定稿，逐字保留，勿改） -----------------------------------
-PROMPT = ('下面是 QQ 群里的一段对话（按时间先后编号）。其中第 {k} 条消息带了一张图片（随本消息发送）。\n\n'
+PROMPT = ('下面是社交群聊里的一段对话（按时间先后编号）。其中第 {k} 条消息带了一张图片（随本消息发送）。\n\n'
           '【对话上下文】\n{ctx}\n\n'
           '请结合上下文描述这张图片。\n\n'
           '要求：\n'

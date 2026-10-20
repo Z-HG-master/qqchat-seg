@@ -25,7 +25,7 @@
 | `review.event` | 1.3 长事件复核 | `{lines}` |
 | `media.context` | 2.1 图片上下文重述 | `{k}` `{ctx}` |
 
-> ⚠ 覆盖提示词后，README 里的基准数字（Ubuntu IRC F1 0.870 等）不再适用。
+> ⚠ 覆盖提示词后，README 里的基准数字（Ubuntu IRC F1 0.862 等）不再适用。
 > 每次运行会把实际使用的提示词哈希写进 `pipeline_manifest.json`，便于追溯。
 """
 import hashlib
@@ -98,5 +98,5 @@ def warning_lines():
     return [
         '⚠ 正在使用自定义提示词（%s）' % p,
         '  覆盖了 %d 项：%s' % (len(act), ', '.join('%s=%s' % (k, v) for k, v in sorted(act.items()))),
-        '  README 中的基准数字（Ubuntu IRC F1 0.870 等）是在默认提示词下测得的，自定义后不再适用。',
+        '  README 中的基准数字（Ubuntu IRC F1 0.862 等）是在默认提示词下测得的，自定义后不再适用。',
     ]
