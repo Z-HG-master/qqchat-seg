@@ -32,7 +32,9 @@ import hashlib
 import json
 import os
 
-ENV_VAR = 'QQSEG_PROMPTS_OVERRIDE'
+ENV_VAR = 'SOCIALCHAT_PROMPTS_OVERRIDE'
+#: 旧变量名（重命名前），仍兼容
+LEGACY_ENV_VAR = 'QQSEG_PROMPTS_OVERRIDE'
 
 #: 全部可覆盖的键（顺序即文档顺序）
 KEYS = (
@@ -47,7 +49,7 @@ def _load():
     if _cache['loaded']:
         return _cache['data']
     _cache['loaded'] = True
-    path = os.environ.get(ENV_VAR, '').strip()
+    path = (os.environ.get(ENV_VAR) or os.environ.get(LEGACY_ENV_VAR) or '').strip()
     if not path:
         return _cache['data']
     _cache['path'] = path

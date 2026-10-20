@@ -14,8 +14,8 @@
 - `peer` / `group_id` 是**会话 ID**（群号 / 频道 ID / 会话标识），只用作本地目录标签。
 - 媒体 `kind` 用通用名（`Pic`/`Emoji`/`Video`/`File`/`Ptt` 及中文别名），不绑定 QQ 类型码。
 
-QQ 是验证最充分的场景；其他平台只要导出成本格式就能跑，
-或直接使用 [ChatLab 标准格式](https://docs.chatlab.fun/standard/chatlab-format)（见 §5）。
+任何平台只要导出成本格式就能跑；也可以直接使用
+[ChatLab 标准格式](https://docs.chatlab.fun/standard/chatlab-format)（见 §5）。
 
 ---
 

@@ -1,9 +1,9 @@
-# qqchat-seg · 社交群聊事件切分流水线
+# socialchat-seg · 社交群聊事件切分流水线
 
-[![CI](https://github.com/Z-HG-master/qqchat-seg/actions/workflows/ci.yml/badge.svg)](https://github.com/Z-HG-master/qqchat-seg/actions/workflows/ci.yml)
+[![CI](https://github.com/Z-HG-master/socialchat-seg/actions/workflows/ci.yml/badge.svg)](https://github.com/Z-HG-master/socialchat-seg/actions/workflows/ci.yml)
 
 把开放域的**社交群聊记录**，清洗成**事件级对话片段**（一段连续的、话题内聚的对话）。
-QQ 是验证最充分的主场景，但**不限于 QQ**——见下方「支持哪些平台」。
+只要导出成统一格式，任何社交群聊数据都可以处理——见下方「支持哪些平台」。
 
 配置驱动 · 模型中立 · **平台中立** · 全流程本地 · 不含任何数据获取功能。
 
@@ -23,17 +23,16 @@ QQ 是验证最充分的主场景，但**不限于 QQ**——见下方「支持�
 
 | 接入方式 | 覆盖平台 | 说明 |
 |---|---|---|
-| **原生 `messages.jsonl`** | **任意平台**（QQ 已验证） | 只要你能把聊天记录导出成这个格式（字段见 §9），任何社交聊天都能处理 |
+| **原生 `messages.jsonl`** | **任意平台** | 只要能把聊天记录导出成这个格式（字段见 §9），任何社交聊天都能处理 |
 | **ChatLab 标准格式** | QQ / WhatsApp / LINE / Discord / Telegram / iMessage / Google Chat | 直接用 ChatLab 的格式，见 §9 末 |
 | 反向导出 | — | 切好的事件可以导回 ChatLab 格式，用它的界面/SQL 浏览 |
 
 **为什么能跨平台**：群聊的难点是「一人连发、多人交织、@ 与回复、图文混杂」，
 这些是**所有**社交群聊共有的，与具体 App 无关。所以：
 - `sender_qq` 这类字段名只是历史命名，值可以是任何平台的用户 ID；
-- 提示词里写的是「QQ 群」，但语义是「多方群聊」——需要完全改写可用 `--prompts-override`。
+- 提示词按「社交群聊」编写（不绑定平台）；需要完全改写可用 `--prompts-override`。
 
-**验证范围**（如实说明）：切分算法在 **Ubuntu IRC**（多人群聊）和真实 QQ 群数据上验证过；
-WhatsApp / Discord 等其他平台**没有做过基准测试**，只能保证流程能跑通。
+**验证范围**：见 §10「实测数据」——那里写明了基准数据集与实际验证时的数据来源。
 
 ---
 
@@ -324,6 +323,12 @@ ChatLab 的时间轴/热力图是可信的，重名用户也不会被合并成�
 
 ## 10. 实测数据（含负面结论）
 
+**验证数据来源**：
+
+- **打分**用公开基准 **Ubuntu IRC**（英文多人频道，2,397 个 20 条窗口）；
+- **端到端统计口径**（信息量、事件数、图文占比等）来自一个真实的中文群聊
+  （QQ 群，6,592 条消息 / 815 张图）——只用统计口径，不参与算法打分。
+
 ### Ubuntu IRC 基准（多人群聊，2,397 样本，金标"新"率 19.3%）
 
 | 配置 | P | R | F1 | 准确率 | 耗时 |
@@ -467,7 +472,7 @@ grep -rn "sqlite3\|pysqlcipher\|PRAGMA key\|nt_msg\|decrypt" --include=*.py .
 ## 15. 目录结构
 
 ```
-qqchat-seg/
+socialchat-seg/
 ├── pipeline.py            编排器（13 步 + 全部命令行开关）
 ├── config.py              配置读取（路径 / 模型角色 / 视觉开关）
 ├── config.example.json    配置模板

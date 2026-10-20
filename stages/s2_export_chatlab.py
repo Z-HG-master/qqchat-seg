@@ -55,7 +55,7 @@ sys.dont_write_bytecode = True   # 不在仓库里留下 __pycache__
 from config import ConfigError, add_common_args, load_config  # noqa: E402
 
 FORMAT_VERSION = '0.0.2'
-PLATFORM = 'qq'
+PLATFORM = 'qq'          # ChatLab 规范必填；用 --platform 覆盖
 TYPE_TEXT = 0
 TYPE_SYSTEM = 80
 
@@ -200,6 +200,8 @@ def main(argv=None):
                     help='事件表（event_id → unit_ids，用于还原真实时间戳）')
     ap.add_argument('--units', default='units_at.jsonl',
                     help='unit 表（unit_id → ts_first / sender_qq）')
+    ap.add_argument('--platform', default=PLATFORM,
+                    help='写入 meta.platform 的平台标识（默认 qq；ChatLab 规范必填字段）')
     ap.add_argument('--out-dir', default='chatlab', help='输出子目录（相对群目录）')
     ap.add_argument('--mode', choices=('split', 'single'), default='split',
                     help='split=一个事件一个文件（默认）；single=整个群一个文件')
@@ -254,8 +256,8 @@ def main(argv=None):
     header_common = {
         'version': FORMAT_VERSION,
         'exportedAt': int(time.time()),
-        'generator': 'qqchat-seg 2.4',
-        'description': '由 qqchat-seg 事件切分结果导出',
+        'generator': 'socialchat-seg 2.4',
+        'description': '由 socialchat-seg 事件切分结果导出',
     }
     index_entries = []
     n_msgs = n_real = n_guess = 0
@@ -280,7 +282,7 @@ def main(argv=None):
             lines = [{
                 '_type': 'header',
                 'chatlab': dict(header_common),
-                'meta': {'name': name, 'platform': PLATFORM, 'type': 'group',
+                'meta': {'name': name, 'platform': args.platform, 'type': 'group',
                          'groupId': cfg.group_id},
             }]
             lines += [_line('member', m) for m in members.values()]
@@ -302,7 +304,7 @@ def main(argv=None):
             '_type': 'header',
             'chatlab': dict(header_common),
             'meta': {'name': cfg.group_name or str(cfg.group_id),
-                     'platform': PLATFORM, 'type': 'group', 'groupId': cfg.group_id},
+                     'platform': args.platform, 'type': 'group', 'groupId': cfg.group_id},
         }]
         all_members = {}
         tail_ts = 0

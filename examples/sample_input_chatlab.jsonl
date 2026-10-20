@@ -1,4 +1,4 @@
-{"_type": "header", "chatlab": {"version": "0.0.2", "exportedAt": 1788190800, "generator": "qqchat-seg examples", "description": "编造的脱敏样例"}, "meta": {"name": "示例群", "platform": "qq", "type": "group", "groupId": "123456789"}}
+{"_type": "header", "chatlab": {"version": "0.0.2", "exportedAt": 1788190800, "generator": "socialchat-seg examples", "description": "编造的脱敏样例"}, "meta": {"name": "示例群", "platform": "qq", "type": "group", "groupId": "123456789"}}
 {"_type": "member", "platformId": "u1001", "accountName": "示例用户A"}
 {"_type": "member", "platformId": "u1002", "accountName": "示例用户B"}
 {"_type": "member", "platformId": "u1003", "accountName": "示例用户C"}

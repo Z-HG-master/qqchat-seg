@@ -67,8 +67,10 @@ def add_common_args(parser):
     """给任意脚本挂上通用的配置参数。"""
     parser.add_argument(
         '--config',
-        default=os.environ.get('QQCHAT_CONFIG', os.path.join(repo_root(), 'config.json')),
-        help='配置文件路径（默认仓库根目录下的 config.json，可用环境变量 QQCHAT_CONFIG 指定）')
+        default=(os.environ.get('SOCIALCHAT_CONFIG')
+                 or os.environ.get('QQCHAT_CONFIG')     # 兼容旧变量名
+                 or os.path.join(repo_root(), 'config.json')),
+        help='配置文件路径（默认仓库根目录下的 config.json，可用环境变量 SOCIALCHAT_CONFIG 指定）')
     parser.add_argument('--group', default=None,
                         help='会话 ID（群号 / 频道 ID / 会话标识，只用作本地目录名），覆盖 config 的 group_id')
     parser.add_argument('--group-name', default=None,
