@@ -13,6 +13,12 @@
     dropped.jsonl      被丢弃的条目及原因
     stats.json         统计摘要
 
+兼容输入
+    也可以直接喂 **ChatLab 标准格式**（chatlab v0.0.1/0.0.2，JSON 或 JSONL）：
+    用 ``--input-format chatlab`` 显式指定，或让它自动识别。
+    ⚠️ 该格式不携带聊天媒体的文件路径，图片/表情会降级成 ``[图片]`` / ``[表情]``
+    文本标签，0.5 与 2.1 不会对它们做视觉识别。
+
 本脚本**不含任何数据获取、数据库读取、解密或 QQ 协议解析逻辑**：数据由使用者
 自行合法导出，导出格式只要符合上面的 JSONL 约定即可。
 
@@ -34,6 +40,7 @@ if _REPO not in sys.path:
 sys.dont_write_bytecode = True   # 不在仓库里留下 __pycache__
 
 from config import ConfigError, add_common_args, load_config  # noqa: E402
+from core import chatlab as chatlab_import                              # noqa: E402
 
 #: 媒体类型 → 正文里的占位标签。图片/表情会在 0.5 被替换成描述；
 #: 视频/文件/语音不做视觉处理，保留裸标签。
@@ -76,6 +83,11 @@ def main(argv=None):
     add_common_args(ap)
     ap.add_argument('--input', default=None,
                     help='输入 JSONL 路径（默认 <group_dir>/input/messages.jsonl）')
+    ap.add_argument('--input-format', choices=('auto', 'native', 'chatlab'), default='auto',
+                    help='输入格式：native=本项目的 messages.jsonl；'
+                         'chatlab=ChatLab 标准格式（JSON/JSONL）；auto=自动识别（默认）')
+    ap.add_argument('--keep-system', action='store_true',
+                    help='ChatLab 格式下保留系统消息（入群/撤回等，默认丢弃）')
     args = ap.parse_args(argv)
 
     cfg = load_config(args, require_group=True)
@@ -89,9 +101,25 @@ def main(argv=None):
         print('  字段约定见 README「数据格式」一节。', file=sys.stderr)
         return 2
 
-    rows, bad = read_input(in_path)
-    print('群号 %s | 输入 %s' % (cfg.group_id, in_path))
-    print('读到 %d 条消息（跳过无法解析的行 %d 条）' % (len(rows), bad))
+    fmt = args.input_format
+    if fmt == 'auto':
+        fmt = 'chatlab' if chatlab_import.looks_like_chatlab(in_path) else 'native'
+
+    cl_meta, cl_stats = {}, {}
+    if fmt == 'chatlab':
+        cl_rows, cl_meta, cl_stats = chatlab_import.load(in_path, keep_system=args.keep_system)
+        rows = [(i + 1, r) for i, r in enumerate(cl_rows)]
+        bad = cl_stats.get('bad_lines', 0)
+        print('群号 %s | 输入 %s' % (cfg.group_id, in_path))
+        print('格式：ChatLab 标准格式（%s）' % (chatlab_import.meta_text(cl_meta, cl_stats) or '无 header 信息'))
+        print('读到 %d 条消息（跳过无法解析的行 %d 条）' % (len(rows), bad))
+        if cl_meta.get('name') and not cfg.group_name:
+            print('  提示：文件头群名为「%s」，可把它填进 config 的 group_name。' % cl_meta['name'])
+        print('  ⚠ 该格式不含媒体文件路径：图片/表情降级为文本标签，0.5 与 2.1 不做视觉识别。')
+    else:
+        rows, bad = read_input(in_path)
+        print('群号 %s | 输入 %s' % (cfg.group_id, in_path))
+        print('读到 %d 条消息（跳过无法解析的行 %d 条）' % (len(rows), bad))
 
     # ---- 第一遍：建立 msg_id → 发送者 的索引（reply 关系需要向后查找目标）
     sender_of = {}
@@ -148,6 +176,13 @@ def main(argv=None):
                 cleanup['lost'].append(label)
         body = body.strip()
 
+        # ChatLab 等格式可能声明"这里有图但没有文件"：在 cleanup 之后补成文本标签，
+        # 这样既不会触发视觉调用，也不会像裸 [图片] 那样被当作丢失标签删掉。
+        for label in (d.get('media_unavailable') or []):
+            label = '[%s]' % label
+            if label not in body:
+                body = (body + ' ' + label).strip()
+
         if not body and not media:
             dropped.append({'line': line_no, 'msg_id': d.get('msg_id'),
                             'sender_uid': uid, 'reason': '无可用内容（空正文且无媒体）'})
@@ -191,7 +226,8 @@ def main(argv=None):
                    'text': '%s: %s' % (m['display'], m['body']),
                    'media': m['media'], 'mentions': m['mentions'],
                    'reply_to': m['reply_to'],
-                   'cleanup': m['cleanup'], 'cat': m['cat']}
+                   'cleanup': m['cleanup'], 'cat': m['cat'],
+                   'media_unavailable': m.get('media_unavailable') or []}
             mf.write(json.dumps(rec, ensure_ascii=False) + '\n')
         for d in dropped:
             df.write(json.dumps(d, ensure_ascii=False) + '\n')
@@ -215,6 +251,7 @@ def main(argv=None):
     st['images'] = sum(1 for m in out_msgs for x in m['media'] if x['kind'] == '图片')
     st['emojis'] = sum(1 for m in out_msgs for x in m['media'] if x['kind'] == '表情')
     st['mentions'] = sum(len(m['mentions']) for m in out_msgs)
+    st['media_unavailable'] = sum(len(m.get('media_unavailable') or []) for m in out_msgs)
     st['replies'] = sum(1 for m in out_msgs if m['reply_to'])
     st['ts_first'] = min(m['ts'] for m in out_msgs)
     st['ts_last'] = max(m['ts'] for m in out_msgs)
@@ -225,6 +262,8 @@ def main(argv=None):
     print('  保留 %d 条 | 丢弃 %d 条 | 发言人 %d 人' % (st['kept'], st['dropped'], st['senders']))
     print('  图片 %d 张 | 表情 %d 个 | @ %d 处 | reply %d 条'
           % (st['images'], st['emojis'], st['mentions'], st['replies']))
+    if st['media_unavailable']:
+        print('  无文件媒体（已降级为文本标签）%d 处' % st['media_unavailable'])
     print('  时间范围 %s → %s' % (st['ts_first'], st['ts_last']))
     print('\n产物：')
     for p in (mf_path, nf_path, ef_path):

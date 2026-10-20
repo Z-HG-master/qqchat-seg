@@ -224,12 +224,50 @@ python pipeline.py --prompts-override p.json   # 用自定义提示词（会警�
 **完整规范**（`kind` 别名表、路径解析规则、占位符三阶段形态、两轮描述的区别）
 见 [`docs/data-format.md`](docs/data-format.md)。
 
+### 也支持 [ChatLab](https://github.com/ChatLab/ChatLab) 标准格式
+
+[ChatLab](https://github.com/ChatLab/ChatLab)（7.5k★，本地优先的聊天记录分析工具）
+定义了跨平台交换格式 `chatlab` v0.0.1/0.0.2，支持 QQ / WhatsApp / LINE / Discord /
+Telegram 等。如果你已经用 ChatLab 整理过数据，可以**直接喂给本流水线**：
+
+```bash
+python pipeline.py --input-format chatlab
+# 或 auto（默认）：按文件头自动识别
+```
+
+```jsonl
+{"_type":"header","chatlab":{"version":"0.0.2","exportedAt":1703001600},"meta":{"name":"示例群","platform":"qq","type":"group"}}
+{"_type":"message","platformMessageId":"m001","sender":"u1001","accountName":"示例用户A","timestamp":1788190689,"type":0,"content":"刚打完一把"}
+{"_type":"message","platformMessageId":"m002","sender":"u1001","accountName":"示例用户A","timestamp":1788190690,"type":1,"content":"[Image]"}
+```
+
+> ⚠️ **该格式不携带聊天媒体的文件路径**（图片只有一个 `type=1` 和字符串 `content`），
+> 也没有 @ 提及字段。因此从 ChatLab 格式导入时：
+> **图片/表情降级成 `[图片]` / `[表情]` 文本标签，0.5 与 2.1 不会做视觉识别。**
+> 需要视觉能力就用上面的原生格式——这是本项目的差异化功能。
+
+字段对应：
+
+| ChatLab | 本项目 |
+|---|---|
+| `platformMessageId` | `msg_id` |
+| `sender` | `sender_uid` |
+| `groupNickname` / `accountName` | `sender_name` |
+| `timestamp` | `ts` |
+| `replyToMessageId` | `reply_to_msg_id` |
+| `type` + `content` | `text`（媒体类型转成中文标签） |
+| `meta.name` / `meta.groupId` | 提示填入 `group_name` / `group_id` |
+
+样例：[`examples/sample_input_chatlab.jsonl`](examples/sample_input_chatlab.jsonl)（编造数据）。
+系统消息（入群/撤回等 `type` 80/81/99）默认丢弃，可用 `--keep-system` 保留。
+
 自带两份编造样例：
 
 | 文件 | 内容 |
 |---|---|
 | [`examples/sample_input.jsonl`](examples/sample_input.jsonl) | 20 条纯文本消息（最小闭环用） |
 | [`examples/sample_input_media.jsonl`](examples/sample_input_media.jsonl) | 12 条，含 2 图 + 1 表情 + 1 视频 + 1 文件 |
+| [`examples/sample_input_chatlab.jsonl`](examples/sample_input_chatlab.jsonl) | ChatLab 标准格式（JSONL），同样的脱敏内容 |
 | [`examples/media/`](examples/media/) | 3 张**程序合成**的占位图（无真实照片/个人信息） |
 
 跑多媒体示例：把 `input_messages` 指向 `sample_input_media.jsonl`、`media_root` 指向
@@ -397,7 +435,7 @@ qqchat-seg/
 
 | 文档 | 内容 |
 |---|---|
-| [`docs/data-format.md`](docs/data-format.md) | 输入格式规范、多媒体接入、两种输出形态 |
+| [`docs/data-format.md`](docs/data-format.md) | 输入格式规范、多媒体接入、ChatLab 格式兼容、两种输出形态 |
 | [`docs/pipeline-overview.md`](docs/pipeline-overview.md) | 每个步骤的设计理由与参数 |
 | [`docs/validation-report.md`](docs/validation-report.md) | 三个数据集上的验证结果与错误分析 |
 | [`docs/pitfalls.md`](docs/pitfalls.md) | 实现时踩过的坑 |

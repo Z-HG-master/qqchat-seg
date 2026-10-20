@@ -262,3 +262,65 @@ python pipeline.py
 
 **Q：支持微信群、Discord、Telegram 吗？**
 只要你能把消息导出成上面的 `messages.jsonl`，流水线不关心来源。字段语义是通用的。
+
+---
+
+## 5. 兼容输入：ChatLab 标准格式
+
+[ChatLab](https://github.com/ChatLab/ChatLab) 是一个本地优先的聊天记录分析工具，
+支持 QQ / WhatsApp / LINE / Discord / Telegram / iMessage / Google Chat，
+并定义了跨平台交换格式 `chatlab` **v0.0.1 / v0.0.2**
+（规范：<https://docs.chatlab.fun/standard/chatlab-format>）。
+
+如果数据已经是这个格式，不需要自己写转换脚本：
+
+```bash
+python pipeline.py --input-format chatlab     # 显式指定
+python pipeline.py                            # 默认 auto：按文件头自动识别
+```
+
+支持两种文件形态：
+
+| 形态 | 识别特征 | 说明 |
+|---|---|---|
+| JSONL | 首行 `{"_type":"header", ...}` | 大文件推荐，流式读取 |
+| JSON | 顶层含 `"chatlab": {...}` | 小文件 |
+
+### 5.1 字段映射
+
+| ChatLab 字段 | 本项目字段 | 说明 |
+|---|---|---|
+| `platformMessageId` | `msg_id` | 缺失时合成 `cl000123` |
+| `sender` | `sender_uid` | |
+| `groupNickname` / `accountName` | `sender_name` | 优先群昵称 |
+| `timestamp` | `ts` | 秒级时间戳 |
+| `replyToMessageId` | `reply_to_msg_id` | 指向对方的 `platformMessageId` |
+| `type` + `content` | `text` / 媒体标签 | 见下表 |
+| `meta.name` / `meta.groupId` | 提示填入 `group_name` / `group_id` | 不自动覆盖配置 |
+
+### 5.2 消息类型映射
+
+| `type` | 含义 | 本项目处理 |
+|---|---|---|
+| 0 | TEXT | 正文 |
+| 1 / 5 | IMAGE / EMOJI | **`[图片]` / `[表情]` 文本标签**（无文件路径） |
+| 2 / 3 / 4 | VOICE / VIDEO / FILE | `[语音]` / `[视频]` / `[文件]` 文本标签 |
+| 7 / 8 / 20–24 / 26 / 27 | 链接 / 位置 / 红包 / 转发 / 名片等 | 转成对应 `[...]` 标签 |
+| 25 | REPLY | 正文 + `replyToMessageId` 关系 |
+| 80 / 81 / 99 | SYSTEM / RECALL / OTHER | 默认丢弃；`--keep-system` 保留 |
+
+### 5.3 能力边界（重要）
+
+ChatLab 标准格式**只承载文本**：图片只有一个 `type=1` 和字符串 `content`
+（如 `"[Image]"`），没有 md5、本地路径或 URL 约定；也**没有 @ 提及字段**。
+
+因此从该格式导入时：
+
+- 阶段 **0.5（媒体转文本）与 2.1（图片上下文重述）不会做视觉识别**，
+  因为拿不到文件。图片/表情只保留为 `[图片]` / `[表情]` 标签。
+- 阶段 **0.7（@ 语义初审）没有 @ 关系可用**，只会处理 reply 关系。
+
+**要保留视觉能力，请使用第 1 节的原生格式**（`media[{md5,kind,path}]`）——
+多媒体识别是本项目的差异化功能。
+
+样例：[`examples/sample_input_chatlab.jsonl`](../examples/sample_input_chatlab.jsonl)。

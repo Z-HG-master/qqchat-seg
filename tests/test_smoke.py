@@ -210,6 +210,60 @@ def test_mock_pipeline_end_to_end():
     assert not stray, '运行后留下 __pycache__：%s' % stray
 
 
+def test_chatlab_format_import():
+    """ChatLab 标准格式（JSONL）能自动识别并跑通；媒体降级为文本标签。"""
+    with tempfile.TemporaryDirectory() as tmp:
+        cfg = {
+            'data_root': os.path.join(tmp, 'data'),
+            'group_id': '123456789',
+            'group_name': 'ChatLab测试',
+            'input_messages': os.path.join(REPO, 'examples', 'sample_input_chatlab.jsonl'),
+            'media_root': '',
+            'base_url': 'http://127.0.0.1:9/v1',
+            'api_key': '',
+            'model_small': 'mock/small',
+            'model_big': 'mock/big',
+            'model_supports_vision': True,
+            'temperature': 0.1,
+            'reasoning_effort': 'none',
+            'request_timeout': 10,
+            'mock': True,
+        }
+        cfg_path = os.path.join(tmp, 'config.json')
+        with open(cfg_path, 'w', encoding='utf-8') as f:
+            json.dump(cfg, f, ensure_ascii=False)
+
+        # 先单独跑 0.1，验证格式自动识别（pipeline 会缓冲阶段输出，这里直连更要紧）
+        r0 = _run([PY, os.path.join(REPO, 'stages', 's0_import.py'),
+                   '--config', cfg_path, '--mock'])
+        out0 = r0.stdout.decode('utf-8', 'replace')
+        assert r0.returncode == 0, '0.1 导入失败\n%s' % out0
+        assert 'ChatLab 标准格式' in out0, '未自动识别出 ChatLab 格式\n%s' % out0
+
+        msgs_path = os.path.join(cfg['data_root'], 'groups', '123456789_ChatLab测试',
+                                 'messages.jsonl')
+        bodies = [json.loads(l)['body'] for l in open(msgs_path, encoding='utf-8') if l.strip()]
+        joined = '\n'.join(bodies)
+        assert '[图片]' in joined, '图片未降级为 [图片] 标签\n%s' % joined
+        assert '[Image]' not in joined, '原始 [Image] 占位未被替换\n%s' % joined
+
+        # 再跑完整流程，确认下游能吃这份数据
+        r = _run([PY, os.path.join(REPO, 'pipeline.py'), '--config', cfg_path, '--mock'])
+        out = r.stdout.decode('utf-8', 'replace')
+        assert r.returncode == 0, 'ChatLab 输入流程失败（exit %d）\n%s' % (r.returncode, out)
+
+        seg = os.path.join(cfg['data_root'], 'groups', '123456789_ChatLab测试',
+                           'segments_ctx.jsonl')
+        assert os.path.isfile(seg), '未产出 segments_ctx.jsonl\n%s' % out
+        rows = [json.loads(l) for l in open(seg, encoding='utf-8') if l.strip()]
+        body = '\n'.join(m for r_ in rows for m in r_['messages'])
+        # 图片/表情应保留为中文标签，且原始 [Image]/[Sticker] 占位被替换掉
+        assert '[图片]' in body, '图片未降级为 [图片] 标签：\n%s' % body
+        assert '[表情]' in body, '表情未降级为 [表情] 标签：\n%s' % body
+        assert '[Image]' not in body and '[Sticker]' not in body, \
+            '原始英文占位串未被替换：\n%s' % body
+
+
 # ---------------------------------------------------------------- runner
 def main(argv=None):
     import argparse
