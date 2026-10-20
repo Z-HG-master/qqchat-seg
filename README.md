@@ -168,6 +168,7 @@ python pipeline.py --mock                      # 离线自测（不调用真实�
 python pipeline.py --from 1.1 --to 1.5         # 断点续跑
 python pipeline.py --force                     # 忽略已有产物重跑
 python pipeline.py --html                      # 生成静态 HTML 报告（双击可看）
+python pipeline.py --export-chatlab            # 导出 ChatLab 格式（用它的界面浏览）
 python pipeline.py --list-prompts              # 打印各步提示词
 python pipeline.py --prompts-override p.json   # 用自定义提示词（会警告基准数字失效）
 ```
@@ -241,9 +242,21 @@ python pipeline.py --input-format chatlab
 {"_type":"message","platformMessageId":"m002","sender":"u1001","accountName":"示例用户A","timestamp":1788190690,"type":1,"content":"[Image]"}
 ```
 
+**反方向也可以**：把切好的事件导出成 ChatLab 格式，用它的界面和 SQL 引擎浏览：
+
+```bash
+python pipeline.py --export-chatlab                  # 一个事件一个文件（默认）
+python pipeline.py --export-chatlab --chatlab-mode single   # 整个群一个文件
+```
+
+产物在 `data/groups/<群标签>/chatlab/`。split 模式会同时写 `index.json` 做索引，
+在 ChatLab 里表现为多个会话，每个就是一个事件；single 模式用系统消息分隔事件。
+
 > ⚠️ **该格式不携带聊天媒体的文件路径**（图片只有一个 `type=1` 和字符串 `content`），
-> 也没有 @ 提及字段。因此从 ChatLab 格式导入时：
-> **图片/表情降级成 `[图片]` / `[表情]` 文本标签，0.5 与 2.1 不会做视觉识别。**
+> 也没有 @ 提及字段。因此：
+> · 从 ChatLab 格式**导入**时，图片/表情降级成 `[图片]` / `[表情]` 文本标签，
+>   0.5 与 2.1 不会做视觉识别；
+> · 从我们**导出**到 ChatLab 时，图片只剩正文里的 `[图片：…]` 文字。
 > 需要视觉能力就用上面的原生格式——这是本项目的差异化功能。
 
 字段对应：
@@ -435,7 +448,7 @@ qqchat-seg/
 
 | 文档 | 内容 |
 |---|---|
-| [`docs/data-format.md`](docs/data-format.md) | 输入格式规范、多媒体接入、ChatLab 格式兼容、两种输出形态 |
+| [`docs/data-format.md`](docs/data-format.md) | 输入格式规范、多媒体接入、ChatLab 双向兼容、两种输出形态 |
 | [`docs/pipeline-overview.md`](docs/pipeline-overview.md) | 每个步骤的设计理由与参数 |
 | [`docs/validation-report.md`](docs/validation-report.md) | 三个数据集上的验证结果与错误分析 |
 | [`docs/pitfalls.md`](docs/pitfalls.md) | 实现时踩过的坑 |

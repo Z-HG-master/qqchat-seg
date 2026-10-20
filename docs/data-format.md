@@ -324,3 +324,35 @@ ChatLab 标准格式**只承载文本**：图片只有一个 `type=1` 和字符�
 多媒体识别是本项目的差异化功能。
 
 样例：[`examples/sample_input_chatlab.jsonl`](../examples/sample_input_chatlab.jsonl)。
+
+### 5.4 反向导出：把事件交给 ChatLab 浏览
+
+```bash
+python pipeline.py --export-chatlab                        # split：一事件一文件
+python pipeline.py --export-chatlab --chatlab-mode single  # single：整群一个文件
+```
+
+| 模式 | 产物 | 在 ChatLab 里看到什么 |
+|---|---|---|
+| `split`（默认） | `chatlab/<event_id>.jsonl` × N + `index.json` | 多个会话，每个会话 = 一个我们切好的事件 |
+| `single` | `chatlab/<群标签>.jsonl` | 一个会话，事件之间用系统消息 `[事件 V0001]` 分隔 |
+
+字段生成规则：
+
+| ChatLab 字段 | 来源 |
+|---|---|
+| `meta.name` | split：`群名 · 事件ID`；single：`群名` |
+| `meta.groupId` | `config.group_id` |
+| `sender` / `accountName` | 把 `"显示名: 正文"` 拆开；`sender` 用显示名的 md5 派生稳定 id |
+| `timestamp` | **近似值**：`ts_first + 序号`（`segments_ctx.jsonl` 未保存逐条时间戳） |
+| `type` | 统一 `0`（TEXT）；single 模式的分隔行用 `80`（SYSTEM） |
+| `content` | 正文（图片已是 `[图片：…]` 文字） |
+
+> 需要**精确逐条时间戳**的话，不要用 2.4，改为从 `s1_events_gated.jsonl`
+> （事件 → `unit_ids`）配合 `units_at.jsonl`（每个 unit 的 `ts`）自行组装。
+
+导出后可用 ChatLab 官方 CLI 校验（需要 Node.js）：
+
+```bash
+npx chatlab-cli validate "<某个导出文件>.jsonl" --json
+```

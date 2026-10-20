@@ -264,6 +264,67 @@ def test_chatlab_format_import():
             '原始英文占位串未被替换：\n%s' % body
 
 
+def test_chatlab_export_format():
+    """2.4 反向导出：产物必须符合 ChatLab 规范（header 首行、字段齐全、类型合法）。"""
+    valid_types = {0, 1, 2, 3, 4, 5, 7, 8, 20, 21, 22, 23, 24, 25, 26, 27, 80, 81, 99}
+    with tempfile.TemporaryDirectory() as tmp:
+        cfg = {
+            'data_root': os.path.join(tmp, 'data'),
+            'group_id': '123456789',
+            'group_name': '导出测试',
+            'input_messages': os.path.join(REPO, 'examples', 'sample_input_media.jsonl'),
+            'media_root': os.path.join(REPO, 'examples', 'media'),
+            'base_url': 'http://127.0.0.1:9/v1',
+            'api_key': '',
+            'model_small': 'mock/small',
+            'model_big': 'mock/big',
+            'model_supports_vision': True,
+            'temperature': 0.1,
+            'reasoning_effort': 'none',
+            'request_timeout': 10,
+            'mock': True,
+        }
+        cfg_path = os.path.join(tmp, 'config.json')
+        with open(cfg_path, 'w', encoding='utf-8') as f:
+            json.dump(cfg, f, ensure_ascii=False)
+
+        r = _run([PY, os.path.join(REPO, 'pipeline.py'), '--config', cfg_path, '--mock'])
+        assert r.returncode == 0, '先生成片段失败\n%s' % r.stdout.decode('utf-8', 'replace')
+
+        for mode in ('split', 'single'):
+            r2 = _run([PY, os.path.join(REPO, 'stages', 's2_export_chatlab.py'),
+                       '--config', cfg_path, '--mock', '--mode', mode])
+            out = r2.stdout.decode('utf-8', 'replace')
+            assert r2.returncode == 0, '2.4 导出失败（%s）\n%s' % (mode, out)
+
+        out_dir = os.path.join(cfg['data_root'], 'groups', '123456789_导出测试', 'chatlab')
+        files = [n for n in os.listdir(out_dir) if n.endswith('.jsonl')]
+        assert len(files) >= 2, 'split/single 两种模式应各产出文件，实际 %s' % files
+
+        for name in files:
+            lines = [json.loads(l) for l in
+                     open(os.path.join(out_dir, name), encoding='utf-8') if l.strip()]
+            assert lines, '%s 为空' % name
+            head = lines[0]
+            assert head.get('_type') == 'header', '%s 首行必须是 header' % name
+            assert head['chatlab']['version'] == '0.0.2', '%s 版本号不对' % name
+            assert head['meta']['name'], '%s 缺少 meta.name' % name
+            assert head['meta']['platform'], '%s 缺少 meta.platform' % name
+            assert head['meta']['type'] in ('group', 'private'), '%s meta.type 非法' % name
+            # 成员行必须在消息行之前
+            kinds = [x.get('_type') for x in lines]
+            first_msg = kinds.index('message') if 'message' in kinds else len(kinds)
+            assert 'member' not in kinds[first_msg:], '%s 成员行出现在消息行之后' % name
+            for x in lines:
+                if x.get('_type') != 'message':
+                    continue
+                for field in ('sender', 'accountName', 'timestamp', 'type', 'content'):
+                    assert field in x, '%s 的消息缺少字段 %s' % (name, field)
+                assert isinstance(x['timestamp'], int) and x['timestamp'] > 1_000_000_000, \
+                    '%s timestamp 必须是秒级整数' % name
+                assert x['type'] in valid_types, '%s 出现非法消息类型 %r' % (name, x['type'])
+
+
 # ---------------------------------------------------------------- runner
 def main(argv=None):
     import argparse
