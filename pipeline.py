@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 """QQ 群聊事件切分 · 全流程编排器。
 
-一条命令跑完一个群（12 步）：
+一条命令跑完一个群（13 步）：
 
     0.1 导入已导出消息 → 0.5 媒体转文本 → 0.6 连发块合并 → 0.7 @/reply 初审
     → 0.8 收尾 → 1.1 事件判别（逐条 + 外延 5 段）→ 1.2 链接合并 → 1.3 长事件复核
     → 1.4 质量闸门 → 1.5 数据集导出 → 2.1 图片上下文重述 → 2.2 纯文本片段
+    2.3 图文交错导出（可选，多模态微调用）
 
 用法::
 
@@ -17,6 +18,9 @@
     python pipeline.py --list-prompts               # 打印全部提示词
     python pipeline.py --check-llm                  # 检查推理服务与模型是否就绪
     python pipeline.py --mock                       # 离线自测（不调用真实模型）
+    python pipeline.py --html                       # 生成静态 HTML 报告
+    python pipeline.py --init-config                # 交互式写 config.json
+    python pipeline.py --prompts-override p.json    # 用自定义提示词
 """
 import argparse
 import json
@@ -70,6 +74,8 @@ STEPS = [
      's2_media_context.py', ['--tag', 'ctx'], 'big'),
     ('2.2', '回填描述 → 纯文本片段（最终成果）',
      's2_build_segments.py', ['--ctx-tag', 'ctx', '--tag', 'segments'], None),
+    ('2.3', '导出图文交错格式（多模态微调用，可选）',
+     's2_export_interleaved.py', ['--ctx-tag', 'ctx'], None),
 ]
 
 #: 每步完成后必须存在的产物（用于校验，防止静默失败）
@@ -86,6 +92,7 @@ EXPECT = {
     '1.5': 'dataset_dataset.jsonl',
     '2.1': 'media_context_ctx.jsonl',
     '2.2': 'segments_ctx.jsonl',
+    '2.3': 'segments_interleaved.jsonl',
 }
 
 FINAL_OUTPUT = 'segments_ctx.jsonl'

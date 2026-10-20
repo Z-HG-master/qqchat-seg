@@ -183,6 +183,7 @@
 | 1.4 质量闸门 | `s1_quality_gate.py` | 丢弃单条事件；丢弃文字含量 <30 的事件（媒体按 15 字计） |
 | 1.5 导出 | `s1_finalize_dataset.py` | 事件级导出与规则分类 |
 | 2.2 回填 | `s2_build_segments.py` | 用上下文描述替换占位符，生成纯文本连续片段 |
+| 2.3 交错导出 | `s2_export_interleaved.py` | 导出图文交错格式（text/image 混合块），供多模态微调 |
 
 ---
 

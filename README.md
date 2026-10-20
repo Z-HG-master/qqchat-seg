@@ -4,7 +4,7 @@
 **事件级的纯文本对话片段**：每个片段是一个自然话题，图片被转成文字描述，
 可以直接用于微调、检索或数据分析。
 
-12 步流水线，配置驱动、模型中立、无数据依赖。
+13 步流水线，配置驱动、模型中立、无数据依赖。
 **本仓库从你已导出的 `messages.jsonl` 开始，不包含任何 QQ 客户端数据获取能力。**
 
 > ⚠️ **伦理与法律警告（先读这一节）**
@@ -83,6 +83,7 @@
 | 1.5 | 事件级导出 + 规则分类 | — | `dataset_dataset.jsonl` |
 | 2.1 | 图片结合上下文重述（每图一次，描述 + 关联两行） | 大模型·视觉 | `media_context_ctx.jsonl` |
 | 2.2 | 回填描述 → 纯文本片段 | — | `segments_ctx.jsonl` |
+| 2.3 | 导出图文交错格式（可选） | — | `segments_interleaved.jsonl` |
 
 “小模型 / 大模型”只是**角色名**：具体是哪个模型完全由 `config.json` 决定。
 详细设计理由、参数与参考耗时见 [`docs/pipeline-overview.md`](docs/pipeline-overview.md)。
@@ -348,7 +349,7 @@ TIAGE 0.249 → 0.239）——这不是“多级复核提升质量”的流水�
 
 ```
 qqchat-seg/
-├── pipeline.py               # 编排器（12 步，--status / --mock / --check-llm）
+├── pipeline.py               # 编排器（13 步，--status / --mock / --check-llm）
 ├── config.py                 # 统一配置读取（路径 / 模型角色 / 视觉开关）
 ├── config.example.json       # 配置模板（复制为 config.json）
 ├── core/
@@ -366,7 +367,8 @@ qqchat-seg/
 │   ├── s1_quality_gate.py    # 1.4 质量闸门
 │   ├── s1_finalize_dataset.py# 1.5 数据集导出
 │   ├── s2_media_context.py   # 2.1 图片上下文重述
-│   └── s2_build_segments.py  # 2.2 纯文本片段（最终成果）
+│   ├── s2_build_segments.py  # 2.2 纯文本片段（最终成果）
+│   └── s2_export_interleaved.py  # 2.3 图文交错（可选）
 ├── prompts/PROMPTS.md        # 7 条提示词逐字存档
 ├── docs/
 │   ├── data-format.md
