@@ -1,12 +1,14 @@
 # qqchat-seg · 群聊事件切分流水线
 
+[![CI](https://github.com/Z-HG-master/qqchat-seg/actions/workflows/ci.yml/badge.svg)](https://github.com/Z-HG-master/qqchat-seg/actions/workflows/ci.yml)
+
 把开放域的 QQ 群聊天记录，清洗成**事件级对话片段**（一段连续的、话题内聚的对话）。
 
 配置驱动 · 模型中立 · 全流程本地 · 不含任何数据获取功能。
 
 | | |
 |---|---|
-| **实测**（Ubuntu IRC，2,397 样本） | `qwen3.5-9b` 单步 **F1 0.870** / 准确率 **95.0%** |
+| **实测**（Ubuntu IRC，2,397 样本） | `qwen3.5-9b` 单步 **F1 0.870** / 准确率 **95.0%**<br>⚠️ 但 1.3 复核会让分数**下降**到 0.833，见 [§9](#9-实测数据含负面结论) |
 | **隐私** | 全流程本地，聊天记录不出本机 |
 | **费用** | 无 API 账单，只有电费与折旧 |
 | **依赖** | 只有 Pillow（`--html` 内嵌图片时才需要） |
