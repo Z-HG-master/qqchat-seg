@@ -23,6 +23,26 @@
 
 ---
 
+## 0. 测试环境
+
+所有数字都在下面这一套配置上产生，便于对照复现：
+
+| 项 | 配置 |
+|---|---|
+| GPU | NVIDIA GeForce RTX 5090（32,607 MiB），驱动 595.97 / CUDA 13.2 |
+| CPU / 内存 | Intel i7-13700KF / 64 GB |
+| 系统 | Windows 10 专业版 |
+| 推理服务 | LM Studio（OpenAI 兼容端点） |
+| 小模型 | `qwen/qwen3.5-9b@q4_k_m`（9B，arch `qwen35`，VLM，6.55 GB） |
+| 大模型 | `qwen/qwen3.8-27b@q4_k_m`（27B，arch `qwen35`，17.74 GB） |
+| 加载参数 | 9B：`-c 16384 --parallel 4`；27B：`-c 32768 --parallel 2` |
+
+> 两个模型都是 **Q4_K_M 量化**，且都是视觉模型。换量化档位或换模型后，
+> 下面的数字不保证仍然成立。
+> 基准测试的 `temperature=0.0`，`reasoning_effort="none"`。
+
+---
+
 ## 1. 测试数据集
 
 | 数据集 | 语言 | 体裁 | 规模 | 金标形态 | 可获得性 |
