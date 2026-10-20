@@ -237,7 +237,7 @@ def cmd_run(cfg, args):
     os.makedirs(cfg.logs_dir, exist_ok=True)
     cfg.ensure_group_dir()
 
-    print('群号：%s | 群名：%s' % (cfg.group_id, cfg.group_name or '(未设置)'))
+    print('会话：%s | 名称：%s' % (cfg.group_id, cfg.group_name or '(未设置)'))
     print('数据目录：%s' % cfg.data_root)
     print('群目录：%s' % cfg.group_dir)
     print('推理端点：%s（%s）' % (cfg.base_url, 'mock 模式' if cfg.mock else '真实调用'))

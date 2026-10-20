@@ -3,7 +3,7 @@
 """阶段 0 · 步骤 0.1：导入用户已导出的消息流（**不做任何数据获取/数据库读取/解密**）。
 
 输入
-    ``<data_root>/groups/<群号>_<群名>/input/messages.jsonl``
+    ``<data_root>/groups/<会话ID>_<名称>/input/messages.jsonl``
     每行一条消息，字段约定见 README「数据格式」：
         msg_id, ts, sender_uid, sender_name, text, at_uids, reply_to_msg_id, media[]
 
@@ -110,7 +110,7 @@ def main(argv=None):
         cl_rows, cl_meta, cl_stats = chatlab_import.load(in_path, keep_system=args.keep_system)
         rows = [(i + 1, r) for i, r in enumerate(cl_rows)]
         bad = cl_stats.get('bad_lines', 0)
-        print('群号 %s | 输入 %s' % (cfg.group_id, in_path))
+        print('会话 %s | 输入 %s' % (cfg.group_id, in_path))
         print('格式：ChatLab 标准格式（%s）' % (chatlab_import.meta_text(cl_meta, cl_stats) or '无 header 信息'))
         print('读到 %d 条消息（跳过无法解析的行 %d 条）' % (len(rows), bad))
         if cl_meta.get('name') and not cfg.group_name:
@@ -118,7 +118,7 @@ def main(argv=None):
         print('  ⚠ 该格式不含媒体文件路径：图片/表情降级为文本标签，0.5 与 2.1 不做视觉识别。')
     else:
         rows, bad = read_input(in_path)
-        print('群号 %s | 输入 %s' % (cfg.group_id, in_path))
+        print('会话 %s | 输入 %s' % (cfg.group_id, in_path))
         print('读到 %d 条消息（跳过无法解析的行 %d 条）' % (len(rows), bad))
 
     # ---- 第一遍：建立 msg_id → 发送者 的索引（reply 关系需要向后查找目标）

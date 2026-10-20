@@ -2,7 +2,7 @@
 """统一配置层：路径、推理端点、模型名、开关全部来自 ``config.json``。
 
 设计约定
-  · 业务代码里不出现任何绝对路径、群号、模型名；
+  · 业务代码里不出现任何绝对路径、会话 ID、模型名；
   · ``config.json`` 中的相对路径以**配置文件所在目录**为基准解析；
   · 运行产物目录（``<data_root>/groups/<群>/``、``<data_root>/logs/``）首次运行时自动创建；
   · 模型名只存在于配置里，任何 OpenAI 兼容推理服务（LM Studio / Ollama / vLLM /
@@ -69,7 +69,8 @@ def add_common_args(parser):
         '--config',
         default=os.environ.get('QQCHAT_CONFIG', os.path.join(repo_root(), 'config.json')),
         help='配置文件路径（默认仓库根目录下的 config.json，可用环境变量 QQCHAT_CONFIG 指定）')
-    parser.add_argument('--group', default=None, help='群号，覆盖 config 里的 group_id')
+    parser.add_argument('--group', default=None,
+                        help='会话 ID（群号 / 频道 ID / 会话标识，只用作本地目录名），覆盖 config 的 group_id')
     parser.add_argument('--group-name', default=None,
                         help='群名（仅作展示/目录标签），覆盖 config 里的 group_name')
     parser.add_argument('--data-root', default=None, help='数据根目录，覆盖 config 里的 data_root')
@@ -128,7 +129,7 @@ class Config(object):
         gid = self.group_id
         if not gid:
             raise ConfigError(
-                '未配置群号：请在 config.json 里填 group_id，或运行时加 --group <群号>。')
+                '未配置会话 ID：请在 config.json 里填 group_id，或运行时加 --group <会话ID>。\n  （group_id 只是本地目录标签：QQ 群号、Discord 频道 ID、Telegram 会话 ID 都可以）')
         name = _sanitize_dirname(self.group_name)
         return '%s_%s' % (gid, name) if name else gid
 
@@ -269,5 +270,5 @@ def load_config(args, allow_missing=False, require_group=False):
         cfg.raw['mock'] = True
 
     if require_group and not cfg.group_id:
-        raise ConfigError('未指定群号：请在 config.json 填 group_id，或运行时加 --group <群号>。')
+        raise ConfigError('未指定会话 ID：请在 config.json 填 group_id，或运行时加 --group <会话ID>。')
     return cfg

@@ -5,6 +5,20 @@
 
 ---
 
+## 0. 与平台无关
+
+本流水线**不含任何平台专属逻辑**：只关心「时间戳 / 发送者 / 正文 / 回复 / @ / 媒体」。
+
+- `sender_uid`（内部字段名历史上叫 `sender_qq`）可以是**任何平台**的用户 ID：
+  QQ 号、Discord user id、Telegram user id、WhatsApp JID 都行，只要求「同一人一致」。
+- `peer` / `group_id` 是**会话 ID**（群号 / 频道 ID / 会话标识），只用作本地目录标签。
+- 媒体 `kind` 用通用名（`Pic`/`Emoji`/`Video`/`File`/`Ptt` 及中文别名），不绑定 QQ 类型码。
+
+QQ 是验证最充分的场景；其他平台只要导出成本格式就能跑，
+或直接使用 [ChatLab 标准格式](https://docs.chatlab.fun/standard/chatlab-format)（见 §5）。
+
+---
+
 ## 1. 输入：`messages.jsonl`
 
 每行一个 JSON 对象，代表**一条消息**。字段如下：
