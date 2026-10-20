@@ -16,6 +16,11 @@ ChatLab（https://github.com/ChatLab/ChatLab）是一个本地优先的聊天记
     如果需要视觉识别（本项目的亮点功能），请使用原生格式
     （``msg_id/ts/sender_uid/text/media[{md5,kind,path}]``），见 docs/data-format.md。
 
+    ⚠️ 第二个限制：该格式**不表达 @ 提及**（规范里没有对应字段）。
+    导入后 ``at_uids`` 恒为空，阶段 0.7 的「@ / reply 语义初审」只剩 reply 半边——
+    我们验证过的「reply 边里约 48% 是假关联」那套纠错，在这条路径上不完整。
+    也就是说：ChatLab 输入 ≠ 原生输入，切分质量可能略低。
+
 支持的输入
     · JSONL：首行 ``{"_type":"header", ...}``，其后 ``_type`` 为 member / message
     · JSON ：``{"chatlab": {...}, "meta": {...}, "members": [...], "messages": [...]}``

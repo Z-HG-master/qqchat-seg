@@ -349,7 +349,10 @@ def cmd_html(cfg):
 def cmd_export_chatlab(cfg, args):
     """把最终片段反向导出为 ChatLab 标准格式（复用 stage 脚本，不重复实现）。"""
     print('导出 ChatLab 标准格式（mode=%s）…' % args.chatlab_mode)
-    cmd = _stage_cmd('s2_export_chatlab.py', ['--mode', args.chatlab_mode], args)
+    extra = ['--mode', args.chatlab_mode]
+    if args.chatlab_sort:
+        extra.append('--sort-by-time')
+    cmd = _stage_cmd('s2_export_chatlab.py', extra, args)
     r = _run_process(cmd)
     for line in (r.stdout or '').splitlines():
         print('  ' + line)
@@ -380,6 +383,8 @@ def main(argv=None):
                     help='配合 --html：把图片缩略图内嵌进 HTML（可整个拷走，文件较大）')
     ap.add_argument('--export-chatlab', action='store_true',
                     help='把最终片段反向导出为 ChatLab 标准格式（可用 ChatLab 浏览/SQL 查询）')
+    ap.add_argument('--chatlab-sort', action='store_true',
+                    help='配合 --export-chatlab：每个文件内按真实时间戳排序')
     ap.add_argument('--chatlab-mode', choices=('split', 'single'), default='split',
                     help='配合 --export-chatlab：split=一事件一文件（默认）；single=整群一个文件')
     ap.add_argument('--prompts-override', default=None, metavar='JSON',

@@ -324,6 +324,48 @@ def test_chatlab_export_format():
                     '%s timestamp 必须是秒级整数' % name
                 assert x['type'] in valid_types, '%s 出现非法消息类型 %r' % (name, x['type'])
 
+        # 时间戳必须是真实值（来自 units_at 的 ts_first），不是 ts_first+i 近似
+        group_dir = os.path.join(cfg['data_root'], 'groups', '123456789_导出测试')
+        units = {}
+        for line in open(os.path.join(group_dir, 'units_at.jsonl'), encoding='utf-8'):
+            if line.strip():
+                u = json.loads(line)
+                units[u['unit_id']] = u
+        events = [json.loads(l) for l in
+                  open(os.path.join(group_dir, 's1_events_gated.jsonl'), encoding='utf-8')
+                  if l.strip()]
+        segs = [json.loads(l) for l in
+                open(os.path.join(group_dir, 'segments_ctx.jsonl'), encoding='utf-8')
+                if l.strip()]
+
+        n_checked = 0
+        for ev in events:
+            seg = next((x for x in segs if x['event_id'] == ev['event_id']), None)
+            if seg is None:
+                continue
+            fpath = os.path.join(out_dir, ev['event_id'] + '.jsonl')
+            if not os.path.isfile(fpath):
+                continue
+            got = [x['timestamp'] for x in
+                   (json.loads(l) for l in open(fpath, encoding='utf-8') if l.strip())
+                   if x.get('_type') == 'message']
+            want = [int(units[u]['ts_first']) for u in ev['unit_ids']]
+            assert got == want, (
+                '%s 的时间戳不是真实值\n  导出: %s\n  期望: %s' %
+                (ev['event_id'], got[:6], want[:6]))
+            n_checked += 1
+        assert n_checked > 0, '没有可比对的事件'
+
+        # 旁表缺失时应当**告警**而不是悄悄近似
+        r3 = _run([PY, os.path.join(REPO, 'stages', 's2_export_chatlab.py'),
+                   '--config', cfg_path, '--mock',
+                   '--units', 'no_such_units.jsonl',
+                   '--events', 'no_such_events.jsonl',
+                   '--out-dir', 'chatlab_fallback'])
+        out3 = r3.stdout.decode('utf-8', 'replace')   # _run 已把 stderr 并入 stdout
+        assert r3.returncode == 0, '缺旁表时应降级而不是失败\n%s' % out3
+        assert '近似' in out3, '缺旁表时必须提示用了近似时间戳\n%s' % out3
+
 
 # ---------------------------------------------------------------- runner
 def main(argv=None):

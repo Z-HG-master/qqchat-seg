@@ -319,6 +319,8 @@ ChatLab 标准格式**只承载文本**：图片只有一个 `type=1` 和字符�
 - 阶段 **0.5（媒体转文本）与 2.1（图片上下文重述）不会做视觉识别**，
   因为拿不到文件。图片/表情只保留为 `[图片]` / `[表情]` 标签。
 - 阶段 **0.7（@ 语义初审）没有 @ 关系可用**，只会处理 reply 关系。
+  这意味着「reply 边里约 48% 是假关联」那套纠错在这条路径上**只覆盖一半**，
+  切分质量会低于原生输入——两者不等价。
 
 **要保留视觉能力，请使用第 1 节的原生格式**（`media[{md5,kind,path}]`）——
 多媒体识别是本项目的差异化功能。
@@ -344,12 +346,37 @@ python pipeline.py --export-chatlab --chatlab-mode single  # single：整群一�
 | `meta.name` | split：`群名 · 事件ID`；single：`群名` |
 | `meta.groupId` | `config.group_id` |
 | `sender` / `accountName` | 把 `"显示名: 正文"` 拆开；`sender` 用显示名的 md5 派生稳定 id |
-| `timestamp` | **近似值**：`ts_first + 序号`（`segments_ctx.jsonl` 未保存逐条时间戳） |
+| `timestamp` | **真实值**：join `s1_events_gated.jsonl` + `units_at.jsonl`，取每个 unit 的 `ts_first` |
 | `type` | 统一 `0`（TEXT）；single 模式的分隔行用 `80`（SYSTEM） |
 | `content` | 正文（图片已是 `[图片：…]` 文字） |
 
-> 需要**精确逐条时间戳**的话，不要用 2.4，改为从 `s1_events_gated.jsonl`
-> （事件 → `unit_ids`）配合 `units_at.jsonl`（每个 unit 的 `ts`）自行组装。
+时间戳粒度是 **unit**，不是原始单条消息：0.6 会把同一人的连发合并成一个 unit，
+最终文本本来就是按 unit 生成的，所以导出也只能到这个粒度。
+
+旁表缺失或长度对不上时，会自动退回 `ts_first + 序号` 近似并**告警**——
+近似时间戳会破坏 ChatLab 的时间轴/热力图，不建议在这种情况下做时间维度分析。
+
+发送者用 `units_at.jsonl` 里的 **`sender_qq`（真实账号 id）** 作为 `platformId`，
+因此**重名用户不会合并**；导出时会打印重名组数。
+
+### 5.5 时间序与 ChatLab 的时间轴
+
+两条需要知道的事实：
+
+1. **事件可能跨时段。** 1.2 的「非连续合并」按 reply/@ 链接把不同时间的 unit 并进
+   同一事件（实测有事件跨度达 14 天）。所以**相邻事件的时间范围可以重叠**、
+   事件内部也可能不是严格时间序——这是数据性质，不是导出错误。
+2. **默认保持对话顺序**（0.6→1.2 的语义顺序），而 ChatLab 的时间轴/热力图
+   假设消息按时间排好。
+
+需要严格时间序时加 `--sort-by-time`：
+
+```bash
+python pipeline.py --export-chatlab --chatlab-sort
+```
+
+它会在**每个输出文件内**按 `timestamp` 排序；`single` 模式下会同时省略事件分隔行
+（因为全局排序后分隔行已经没有意义），并打印提示。
 
 导出后可用 ChatLab 官方 CLI 校验（需要 Node.js）：
 
