@@ -147,8 +147,8 @@ def main(argv=None):
                     help='path=写文件路径（默认）；base64=内联成 data URL')
     ap.add_argument('--relative-to', default=None,
                     help='把图片路径改写成相对该目录（仅 media-mode=path 有效）')
-    ap.add_argument('--no-desc', action='store_true',
-                    help='不输出 desc 字段（只要纯图 + 文本，不要辅助描述）')
+    ap.add_argument('--desc', choices=('auto', 'on', 'off'), default='auto',
+                    help='是否附带文字描述：auto=仅当 2.1 跑过才带（默认）；on=总是带；off=不带')
     ap.add_argument('--copy-media', default=None, metavar='DIR',
                     help='把用到的图片复制到 DIR（按 md5 命名去重），路径改写为相对 jsonl 所在目录')
     ap.add_argument('--base64-max-px', type=int, default=768,
@@ -170,8 +170,15 @@ def main(argv=None):
     units = load_jsonl(units_path)
     uid = {u['unit_id']: u for u in units}
     evs = load_jsonl(src_path)
-    desc_by_md5 = {} if args.no_desc else build_desc_map(group_dir, args.ctx_tag)
-    desc_by_occ = {} if args.no_desc else build_ctx_desc_map(group_dir, args.ctx_tag)
+    ctx_path = os.path.join(group_dir, 'media_context_%s.jsonl' % args.ctx_tag)
+    has_ctx = os.path.isfile(ctx_path)
+    want_desc = (args.desc == 'on') or (args.desc == 'auto' and has_ctx)
+    if args.desc == 'auto' and not has_ctx:
+        print('未发现 2.1 产物（%s），不附带 desc —— 图文分支本来就不需要描述。'
+              % os.path.basename(ctx_path))
+    args._want_desc = want_desc          # 供 _media_block 读取
+    desc_by_md5 = build_desc_map(group_dir, args.ctx_tag) if want_desc else {}
+    desc_by_occ = build_ctx_desc_map(group_dir, args.ctx_tag) if want_desc else {}
 
     media_root = getattr(cfg, 'media_root', '') or ''
     n_img = n_missing = n_msgs = 0
@@ -212,7 +219,7 @@ def main(argv=None):
                             blk = _media_block(m, media_path, desc_by_md5, args, GROUP_DIR[0])
                             # 2.1 的逐事件描述优先级最高
                             d = desc_by_occ.get((e['event_id'], k, occ))
-                            if d and not args.no_desc:
+                            if d and want_desc:
                                 blk['desc'] = d
                             content.append(blk)
                         else:
@@ -256,7 +263,7 @@ def main(argv=None):
     if n_missing:
         print('保留为文本的媒体占位符 %d 处（通常是 QQ 内置表情：源码里就是文本，没有图片文件）'
               % n_missing)
-    print('描述辅助字段：%s' % ('关闭' if args.no_desc else '已附带（%d 条 md5 映射）' % len(desc_by_md5)))
+    print('描述辅助字段：%s' % ('未附带（图文分支不需要）' if not want_desc else '已附带（%d 条 md5 映射）' % len(desc_by_md5)))
     print('\n产物：%s（%.2f MB）' % (out_path, size / 1024 / 1024))
     print('  这是给多模态模型用的：messages[].content 是 text / image 混合块。')
     print('  切分结果与 2.2 的纯文本版完全一致，只是媒体的呈现方式不同。')
@@ -298,7 +305,8 @@ def _media_block(m, media_path, desc_by_md5, args, out_dir=None):
         src = src.replace('\\', '/') if src else ''
 
     blk = {'type': 'image', 'image': src, 'kind': kind}
-    if not args.no_desc:
+    want_desc = getattr(args, '_want_desc', False)
+    if want_desc:
         d = desc_by_md5.get(md5)
         if d:
             blk['desc'] = d

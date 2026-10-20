@@ -207,12 +207,25 @@ def cmd_check_llm(cfg):
 
 
 def cmd_run(cfg, args):
-    key_list = [s[0] for s in STEPS]
+    # ---- 分支：只影响 2.x 的哪些步骤要跑 ----
+    BRANCH_STEPS = {
+        'text': {'2.1', '2.2'},
+        'interleaved': {'2.3'},
+        'both': {'2.1', '2.2', '2.3'},
+    }
+    allowed = BRANCH_STEPS.get(args.branch, BRANCH_STEPS['both'])
+    steps = [st for st in STEPS
+             if not (st[0].startswith('2.') and st[0] not in allowed)]
+    # --from/--to 只在过滤后的步骤表里定位
+    key_list = [s[0] for s in steps]
+
     if args.frm and args.frm not in key_list:
-        print('错误：--from 不在步骤列表里（可选：%s）' % ' / '.join(key_list))
+        print('错误：--from=%s 在当前分支（--branch %s）下不会执行。' % (args.frm, args.branch))
+        print('  该分支的步骤：%s' % ' / '.join(key_list))
         return 2
     if args.to and args.to not in key_list:
-        print('错误：--to 不在步骤列表里（可选：%s）' % ' / '.join(key_list))
+        print('错误：--to=%s 在当前分支（--branch %s）下不会执行。' % (args.to, args.branch))
+        print('  该分支的步骤：%s' % ' / '.join(key_list))
         return 2
     lo = key_list.index(args.frm) if args.frm else 0
     hi = key_list.index(args.to) if args.to else len(key_list) - 1
@@ -227,6 +240,11 @@ def cmd_run(cfg, args):
     print('数据目录：%s' % cfg.data_root)
     print('群目录：%s' % cfg.group_dir)
     print('推理端点：%s（%s）' % (cfg.base_url, 'mock 模式' if cfg.mock else '真实调用'))
+    print('产物分支：%s（%s）' % (args.branch, {
+        'both': '2.1+2.2 纯文本 与 2.3 图文交错',
+        'text': '仅 2.1+2.2 纯文本（跳过 2.3）',
+        'interleaved': '仅 2.3 图文交错（跳过 2.1、2.2，省掉图片上下文重述）',
+    }.get(args.branch, '')))
     if not cfg.model_supports_vision:
         print('注意：model_supports_vision=false，0.5 / 2.1 会跳过视觉标注。')
     if not args.mock:
@@ -250,7 +268,7 @@ def cmd_run(cfg, args):
     t_all = time.time()
     report = []
     model_ready = {}
-    for key, desc, script, extra, role in STEPS[lo:hi + 1]:
+    for key, desc, script, extra, role in steps[lo:hi + 1]:
         ok = run_step(key, desc, script, extra, role, cfg, args, model_ready)
         report.append((key, desc, ok))
         if not ok:
@@ -264,6 +282,7 @@ def cmd_run(cfg, args):
     manifest = {
         'group_id': cfg.group_id, 'group_name': cfg.group_name,
         'mock': cfg.mock,
+        'branch': args.branch,
         'models': {'small': cfg.raw.get('model_small'), 'big': cfg.raw.get('model_big')},
         'steps': [{'key': k, 'desc': d, 'ok': o} for k, d, o in report],
         'finished_at': int(time.time()),
@@ -346,6 +365,9 @@ def main(argv=None):
                     help='配合 --html：把图片缩略图内嵌进 HTML（可整个拷走，文件较大）')
     ap.add_argument('--prompts-override', default=None, metavar='JSON',
                     help='用自定义提示词覆盖默认值（见 core/prompts.py 的键表）')
+    ap.add_argument('--branch', choices=('both', 'text', 'interleaved'), default='both',
+                    help='产物分支：text=纯文本（2.1+2.2），interleaved=图文交错（仅 2.3，'
+                         '跳过 2.1/2.2），both=两路都出（默认）')
     args = ap.parse_args(argv)
 
     # ---- 提示词覆盖：先设置环境变量，子进程才能继承 ----
