@@ -1,0 +1,18 @@
+{
+  "_readme": "复制为 config.json 后按需填写。模型名只是我们自己验证过的默认配置，不是硬性要求：任何 OpenAI 兼容推理服务（LM Studio / Ollama / vLLM / llama.cpp server / 云端 API）都可以用，只要改 base_url 与 model_small / model_big。",
+  "_readme_group": "group_id/group_name 只是本地目录标签，不是任何真实群信息；data_root 可以是相对路径（相对本文件所在目录）或绝对路径。",
+  "data_root": "data",
+  "group_id": "123456789",
+  "group_name": "示例群",
+  "input_messages": "",
+  "media_root": "",
+  "base_url": "http://127.0.0.1:1234/v1",
+  "api_key": "",
+  "model_small": "qwen/qwen3.5-9b",
+  "model_big": "qwen/qwen3.8-27b",
+  "model_supports_vision": true,
+  "temperature": 0.1,
+  "reasoning_effort": "none",
+  "request_timeout": 180,
+  "mock": false
+}

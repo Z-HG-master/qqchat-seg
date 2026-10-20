@@ -1,0 +1,12 @@
+{"msg_id": "m0001", "ts": 1788190689, "sender_uid": "u1001", "sender_name": "示例用户A", "text": "刚打完一把，这把评分居然给了 S", "at_uids": [], "reply_to_msg_id": null, "media": [{"md5": "96a5413db06ecaf3b34a3831d4166c17", "kind": "Pic", "path": "demo_screenshot.png"}]}
+{"msg_id": "m0002", "ts": 1788190697, "sender_uid": "u1002", "sender_name": "示例用户B", "text": "真的假的，我最高才 A", "at_uids": ["u1001"], "reply_to_msg_id": "m0001", "media": []}
+{"msg_id": "m0003", "ts": 1788190705, "sender_uid": "u1001", "sender_name": "示例用户A", "text": "你试试把连招少放两段，评分看的是连击质量不是数量", "at_uids": ["u1002"], "reply_to_msg_id": "m0002", "media": []}
+{"msg_id": "m0004", "ts": 1788190712, "sender_uid": "u1002", "sender_name": "示例用户B", "text": "懂了，晚上回去试试", "at_uids": [], "reply_to_msg_id": null, "media": [{"md5": "87bc123124014a2024c494144c5fc864", "kind": "Emoji", "path": "demo_meme.png"}]}
+{"msg_id": "m0005", "ts": 1788190719, "sender_uid": "u1003", "sender_name": "示例用户C", "text": "你们两个又在卷这个", "at_uids": ["u1001", "u1002"], "reply_to_msg_id": null, "media": []}
+{"msg_id": "m0006", "ts": 1788190726, "sender_uid": "u1001", "sender_name": "示例用户A", "text": "卷不动了，一天就玩两把", "at_uids": [], "reply_to_msg_id": null, "media": []}
+{"msg_id": "m0007", "ts": 1788190800, "sender_uid": "u1004", "sender_name": "示例用户D", "text": "说到评分，我把结算界面截下来了", "at_uids": [], "reply_to_msg_id": null, "media": [{"md5": "96a5413db06ecaf3b34a3831d4166c17", "kind": "Pic", "path": "demo_screenshot.png"}]}
+{"msg_id": "m0008", "ts": 1788190809, "sender_uid": "u1003", "sender_name": "示例用户C", "text": "这界面不错啊，什么设备", "at_uids": ["u1004"], "reply_to_msg_id": "m0007", "media": []}
+{"msg_id": "m0009", "ts": 1788190816, "sender_uid": "u1004", "sender_name": "示例用户D", "text": "老机器，开了最低画质", "at_uids": ["u1003"], "reply_to_msg_id": "m0008", "media": []}
+{"msg_id": "m0010", "ts": 1788190831, "sender_uid": "u1002", "sender_name": "示例用户B", "text": "分享个录像，最后那段连招", "at_uids": [], "reply_to_msg_id": null, "media": [{"md5": "", "kind": "Video", "path": ""}]}
+{"msg_id": "m0011", "ts": 1788190840, "sender_uid": "u1004", "sender_name": "示例用户D", "text": "收了，回头参考", "at_uids": ["u1002"], "reply_to_msg_id": "m0010", "media": []}
+{"msg_id": "m0012", "ts": 1788190847, "sender_uid": "u1005", "sender_name": "示例用户E", "text": "传了个按键配置表", "at_uids": [], "reply_to_msg_id": null, "media": [{"md5": "", "kind": "File", "path": ""}]}

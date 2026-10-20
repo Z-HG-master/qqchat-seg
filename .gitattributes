@@ -1,0 +1,17 @@
+# 统一换行符：仓库内一律存 LF，检出时按平台（Windows 用户也不会改仓库内容）
+* text=auto eol=lf
+
+# 明确二进制，避免 git 尝试转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.zip binary
+
+# 文档与脚本按文本处理
+*.md text
+*.py text
+*.json text
+*.jsonl text
+*.txt text

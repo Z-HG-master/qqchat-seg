@@ -1,0 +1,14 @@
+# Core dependency: only Pillow is required (image resize / encode before sending to vision model).
+# HTTP calls use the standard library urllib, so requests is NOT needed.
+#
+# IMPORTANT: keep this file pure ASCII.
+# On Chinese Windows the locale is cp936; pip falls back to gbk decoding when a file
+# has no BOM and no PEP 263 coding cookie, so non-ASCII comments make
+# `pip install -r requirements.txt` crash with UnicodeDecodeError before installing.
+Pillow>=9.0
+
+# ---------------------------------------------------------------------------
+# Extra deps for benchmark scripts under bench/ (uncomment when needed):
+# pandas>=2.0
+# pyarrow>=14.0
+# ---------------------------------------------------------------------------
