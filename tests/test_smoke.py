@@ -37,6 +37,11 @@ for _stream in (sys.stdout, sys.stderr):
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PY = sys.executable
 
+#: 1.1 的基础尾：`PROMPT` 以它结尾，enable-explain 时会被 EXPLAIN_TAIL 替换。
+#: 如果 s1_segment_unit.py 里这句改字了，下面的断言会**明确报出是哪一边变了**，
+#: 而不是让 CI 把错误归因到 PROMPTS.md。
+BASE_TAIL = '只输出一个字：续 或 新'
+
 #: PROMPTS.md 里 7 个代码块的顺序 → (脚本, 用于定位的标记, 优先选的分支)
 PROMPT_SPEC = [
     ('media.pic',      'stages/s0_media.py',          '这是一张 QQ 群里的图片',        None),
@@ -95,13 +100,19 @@ def _compose_explain(rel_path):
             continue
         for t in node.targets:
             if isinstance(t, ast.Name) and t.id in ('PROMPT', 'EXPLAIN_TAIL'):
+                if t.id in vals:
+                    continue        # 只取第一个可字面量化的赋值（后面是 --prompts-override 的运行时覆盖）
                 try:
                     vals[t.id] = ast.literal_eval(node.value)
                 except (ValueError, TypeError):
                     continue        # 覆盖用的 _prompt_get(...) 调用，跳过
     base, tail = vals.get('PROMPT'), vals.get('EXPLAIN_TAIL')
     assert base and tail, '无法从 %s 取到 PROMPT / EXPLAIN_TAIL' % rel_path
-    return base.replace('只输出一个字：续 或 新', tail)
+    assert BASE_TAIL in base, (
+        '%s 的 PROMPT 里找不到基础尾 %r。\n'
+        '原因可能是：源码里的这句被改写了 → 请同步更新 tests/test_smoke.py 的 BASE_TAIL，'
+        '并重新生成 prompts/PROMPTS.md' % (rel_path, BASE_TAIL))
+    return base.replace(BASE_TAIL, tail)
 
 
 # ---------------------------------------------------------------- tests
@@ -200,9 +211,19 @@ def test_mock_pipeline_end_to_end():
 
 
 # ---------------------------------------------------------------- runner
-def main():
+def main(argv=None):
+    import argparse
+    ap = argparse.ArgumentParser(description='冒烟测试')
+    ap.add_argument('--only', default='', help='只跑名字包含该子串的测试（如 prompts）')
+    args = ap.parse_args(argv)
+
     tests = [(n, f) for n, f in sorted(globals().items())
              if n.startswith('test_') and callable(f)]
+    if args.only:
+        tests = [(n, f) for n, f in tests if args.only in n]
+        if not tests:
+            print('没有匹配 --only %r 的测试' % args.only)
+            return 2
     failed = 0
     for name, fn in tests:
         try:
