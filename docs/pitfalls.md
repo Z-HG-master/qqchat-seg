@@ -58,3 +58,45 @@
 > 历史背景（已解决）：迁移前，存档文档中 0.7 与 1.3 两条是早期压缩版，而代码里是后续迭代的
 > 完整版，造成文档与实现不一致。迁移时已按上述方式重新生成，差异已消除。
 
+### 11. Windows 上 print ✓ / ✗ 会 UnicodeEncodeError
+
+Windows 控制台/管道默认编码是 cp1252（英文系统）或 cp936（中文系统），
+打印 `✓`(U+2713)、`✗`(U+2717)、`→` 这类符号会直接抛：
+
+```
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2713'
+```
+
+**这不是编码写错了，而是 stdout 承载不了这些字符。** 修法是显式重配：
+
+```python
+for stream in (sys.stdout, sys.stderr):
+    try:
+        stream.reconfigure(encoding='utf-8', errors='replace')
+    except (AttributeError, ValueError):
+        pass
+```
+
+这个坑只有 CI 的 `windows-latest` 能替你抓到——本地开发终端通常已经是 UTF-8。
+`tests/test_smoke.py` 顶部就做了这个重配。
+
+### 12. 推送 `.github/workflows/` 需要额外的 `workflow` scope
+
+即使 token 有 `repo` 权限，`git push` 含 workflow 文件时仍会被拒绝：
+
+```
+! [remote rejected] main -> main (refusing to allow an OAuth App to
+  create or update workflow `.github/workflows/ci.yml` without `workflow` scope)
+```
+
+这是 GitHub 的安全机制（workflow 能执行任意代码）。⚠️ 这一点对**历史重写**同样适用：
+force-push 一个包含 CI 文件的提交也需要该 scope。
+需要重新授权（`gh auth refresh -s workflow`）或使用带 `workflow` 权限的 fine-grained PAT。
+
+### 13. `ubuntu-latest` 会悄悄升级大版本
+
+2026-10-19 `ubuntu-latest` 从 Ubuntu 24.04 迁到 26.04，**该镜像不再提供 Python 3.9**，
+`setup-python` 直接报 `The version '3.9' was not found for Ubuntu 26.04`。
+
+对策：CI 矩阵里不要用太老的小版本；需要老 Python 就显式钉 `ubuntu-22.04`。
+另外 Python 3.9 已于 2025-10 结束安全支持，本项目要求 3.10+。
