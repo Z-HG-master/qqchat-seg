@@ -170,17 +170,31 @@ class Config(object):
 
     # ------------------------------------------------------------------ 模型
     def model_for(self, role):
-        """按角色取模型名。角色只有 small / big，模型名完全来自配置。"""
+        """按角色取模型名。角色只有 small / big，模型名完全来自配置。
+
+        单模型模式：``model_big`` 留空时 big 角色复用 ``model_small``。
+        流水线里 small / big 从不同时工作，只加载一个模型也能完整跑完。
+        """
         key = ROLE_KEYS.get(role)
         if key is None:
             raise ConfigError('未知的模型角色 %r（只支持 small / big）' % (role,))
         name = str(self.raw.get(key) or '').strip()
+        if not name and role == 'big':
+            fallback = str(self.raw.get('model_small') or '').strip()
+            if fallback:
+                return fallback
         if not name:
             raise ConfigError(
                 'config.json 未配置 %s（%s 角色模型）。\n'
                 '  任何 OpenAI 兼容模型都可以，把它填进 config.json 后重试；\n'
-                '  可参考 config.example.json 的默认值。' % (key, role))
+                '  单模型模式可只填 model_small、把 model_big 留空。'
+                % (key, role))
         return name
+
+    @property
+    def single_model(self):
+        """是否为单模型模式（model_big 为空，big 角色复用 small）。"""
+        return not str(self.raw.get('model_big') or '').strip()
 
     @property
     def mock(self):
