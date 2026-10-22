@@ -163,7 +163,7 @@ python pipeline.py --branch both          # 两份都出（默认）
 # 1. 安装依赖（只有 Pillow）
 pip install -r requirements.txt
 
-# 2. 启动推理服务，加载两个模型：
+# 2. 启动推理服务，按阶段加载模型（两个模型从不同时工作，不必同时驻留）：
 #    一个带视觉能力的小模型（阶段 0 / 1.1）+ 一个大模型（1.3 / 2.1）
 #    ⚠ 如果你的模型默认开启「思考模式」（Qwen 系等），请把它关掉，
 #      否则单次调用会慢一个数量级且输出容易被推理占满（Qwen 可设 reasoning_effort=none）
@@ -175,7 +175,7 @@ python pipeline.py --init-config
 #    放到 <data_root>/groups/<group_id>_<group_name>/input/messages.jsonl
 
 # 5. 检查模型是否就绪
-python pipeline.py --check-llm
+python pipeline.py --check-llm      # 检查 small/big 两个角色；单步运行只会检查该步需要的角色
 
 # 6. 跑完整流程
 python pipeline.py --group 123456789

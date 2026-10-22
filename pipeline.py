@@ -249,12 +249,18 @@ def cmd_run(cfg, args):
     if not cfg.model_supports_vision:
         print('注意：model_supports_vision=false，0.5 / 2.1 会跳过视觉标注。')
     if not args.mock:
+        # 只检查本次步骤范围真正用到的模型角色：不会让用户为不参与运行的模型做无谓加载
+        needed = {role for key, desc, script, extra, role in steps[lo:hi + 1] if role}
         for role in ('small', 'big'):
+            if role not in needed:
+                continue
             ok, _ = LLM(cfg).check(role)
             if not ok:
                 print('\n模型不可用，先解决问题再跑：')
                 cmd_check_llm(cfg)
                 return 2
+        if not needed:
+            print('（本次范围没有需要模型的步骤）')
     print('')
 
     # 0.1 需要用户先放好输入文件
