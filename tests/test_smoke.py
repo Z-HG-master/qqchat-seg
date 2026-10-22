@@ -209,38 +209,6 @@ def test_mock_pipeline_end_to_end():
     assert not stray, '运行后留下 __pycache__：%s' % stray
 
 
-def test_single_model_config():
-    """model_big 留空时 big 角色复用 small，单模型也能 mock 跑完整流程。"""
-    with tempfile.TemporaryDirectory() as tmp:
-        cfg = {
-            'data_root': os.path.join(tmp, 'data'),
-            'group_id': '123456789',
-            'group_name': '单模型',
-            'input_messages': os.path.join(REPO, 'examples', 'sample_input_media.jsonl'),
-            'media_root': os.path.join(REPO, 'examples', 'media'),
-            'base_url': 'http://127.0.0.1:9/v1',
-            'api_key': '',
-            'model_small': 'mock/small',
-            'model_big': '',
-            'model_supports_vision': True,
-            'temperature': 0.1,
-            'request_timeout': 10,
-            'mock': True,
-        }
-        cfg_path = os.path.join(tmp, 'config.json')
-        with open(cfg_path, 'w', encoding='utf-8') as f:
-            json.dump(cfg, f, ensure_ascii=False)
-
-        r = _run([PY, os.path.join(REPO, 'pipeline.py'), '--config', cfg_path, '--mock'])
-        out = r.stdout.decode('utf-8', 'replace')
-        assert r.returncode == 0, '单模型 mock 流程失败（exit %d）\n%s' % (r.returncode, out)
-        group_dir = os.path.join(cfg['data_root'], 'groups', '123456789_单模型')
-        assert os.path.isfile(os.path.join(group_dir, 'segments_ctx.jsonl')), \
-            '单模型模式未产出 segments_ctx.jsonl\n%s' % out
-
-        # mock 模式下不会真正查询端点，模型解析由上面的完整运行覆盖
-
-
 def test_chatlab_format_import():
     """ChatLab 标准格式（JSONL）能自动识别并跑通；媒体降级为文本标签。"""
     with tempfile.TemporaryDirectory() as tmp:

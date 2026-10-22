@@ -14,6 +14,5 @@
   "temperature": 0.1,
   "request_timeout": 180,
   "mock": false,
-  "_readme_optional": "可选字段：reasoning_effort 是部分模型家族（如 Qwen）私有的思考模式强度参数，本项目不依赖它；如果你的模型默认开启思考模式导致单次调用很慢，可以在 config.json 里把 reasoning_effort 设为 none 关掉。换用其他模型时不需要这个字段。",
-  "_readme_single_model": "单模型模式：把 model_big 留空（或与 model_small 相同），big 角色会复用 model_small；流水线里 small/big 从不同时工作，只加载一个模型也能完整跑完（1.3 复核与 2.1 图片重述质量会下降）。"
+  "_readme_optional": "可选字段：reasoning_effort 是部分模型家族（如 Qwen）私有的思考模式强度参数，本项目不依赖它；如果你的模型默认开启思考模式导致单次调用很慢，可以在 config.json 里把 reasoning_effort 设为 none 关掉。换用其他模型时不需要这个字段。"
 }

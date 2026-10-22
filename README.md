@@ -211,7 +211,7 @@ python pipeline.py --prompts-override p.json   # 用自定义提示词（会警�
 | `input_messages` | 输入 JSONL 路径（留空则在群目录 `input/` 下找） |
 | `media_root` | 媒体根目录（留空= `data_root`）；**填错会导致图片全部按丢失处理且不报错** |
 | `base_url` / `api_key` | OpenAI 兼容端点 |
-| `model_small` / `model_big` / `model_supports_vision` | 模型角色名与视觉开关；**`model_big` 留空 = 单模型模式**（big 复用 small） |
+| `model_small` / `model_big` / `model_supports_vision` | 模型角色名与视觉开关 |
 | `temperature` / `request_timeout` | 调用参数 |
 | `reasoning_effort` | **可选**，部分模型家族（如 Qwen）的私有旋钮；默认不发送，本项目不依赖思考模式 |
 
