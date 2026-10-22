@@ -248,19 +248,11 @@ def cmd_run(cfg, args):
     }.get(args.branch, '')))
     if not cfg.model_supports_vision:
         print('注意：model_supports_vision=false，0.5 / 2.1 会跳过视觉标注。')
+    # 不做启动时预检：模型检查发生在**每一步真正调用前**（见 run_step）。
+    # 这样同一时刻只驻留一个模型也能跑——环境可以在 small / big 阶段之间自行切换，
+    # 流水线不假设两个模型同时就绪。需要一次性体检时用 --check-llm。
     if not args.mock:
-        # 只检查本次步骤范围真正用到的模型角色：不会让用户为不参与运行的模型做无谓加载
-        needed = {role for key, desc, script, extra, role in steps[lo:hi + 1] if role}
-        for role in ('small', 'big'):
-            if role not in needed:
-                continue
-            ok, _ = LLM(cfg).check(role)
-            if not ok:
-                print('\n模型不可用，先解决问题再跑：')
-                cmd_check_llm(cfg)
-                return 2
-        if not needed:
-            print('（本次范围没有需要模型的步骤）')
+        print('模型检查：在每一步调用前进行（启动时不要求模型已加载）')
     print('')
 
     # 0.1 需要用户先放好输入文件
